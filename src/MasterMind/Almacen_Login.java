@@ -5,6 +5,9 @@
  */
 package MasterMind;
 
+import Excepciones.UsuarioNoExisteException;
+import Excepciones.UsuarioYaExisteException;
+import Excepciones.WrongPasswordException;
 import java.util.ArrayList;
 
 /**
@@ -14,43 +17,37 @@ import java.util.ArrayList;
 public class Almacen_Login {
     private final ArrayList<Usuario> usuarios = new ArrayList<>();
     
-    
-    public boolean estaRegistrado(String nombre){
-        if(comprobarUsusario(nombre)!=null){
-            System.out.println("Usuario ya existe");
-            return true;
+    private Usuario comprobarUsuario(Usuario usuario){
+        if(usuarios.contains(usuario)){
+            int i = usuarios.indexOf(usuario);
+            //System.out.println("Usuario existe");
+            return usuarios.get(i);
         } else {
-            System.out.println("Usuario aun no existe");
-            return false;
-        }
-    }
-    
-    private Usuario comprobarUsusario(String nombre){
-        Usuario u = new Usuario(nombre, "");
-        if(this.usuarios.contains(u)){
-            int i = this.usuarios.indexOf(u);
-            u = (Usuario) this.usuarios.get(i);
-        } else {
-            u = null;
-            
-        }
-        return u;
-    }
-    
-    public void registrar(Usuario usuario){
-        System.out.println("Registrando");
-        if(usuario!=null){
-            usuarios.add(usuario);
-            System.out.println("usuario registrado");
-        }
-    }
-    
-    public Usuario identificar(Usuario usuario){
-        Usuario u = comprobarUsusario(usuario.getNombre());
-        if(u!=null && u.equals(usuario)){
-            return u;
-        } else {
+            //System.out.println("usuario no existe");
             return null;
+        }
+    }
+    
+    
+    public void registrar(Usuario usuario) throws UsuarioYaExisteException {
+        if(comprobarUsuario(usuario)!=null){
+            throw new UsuarioYaExisteException();
+        } else {
+            usuarios.add(usuario);
+            //System.out.println("Usuario registrado");
+        }
+    }
+    
+    public Usuario identificar(Usuario usuario) throws WrongPasswordException, UsuarioNoExisteException {
+        Usuario u = comprobarUsuario(usuario); //compruebo si existe un usuario con su nombre en array de usuarios
+        if(u!=null){
+            if(u.getClave()==usuario.getClave()){
+                return u;
+            } else {
+                throw new WrongPasswordException();
+            }
+        } else {
+            throw new UsuarioNoExisteException();
         }
     }
 }
