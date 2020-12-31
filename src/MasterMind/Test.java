@@ -26,45 +26,44 @@ public class Test {
         Almacen_Login almacen_Login = new Almacen_Login();
         
         Usuario usuario = new Usuario("Juan", "1234"); 
-        Usuario usuario2 = new Usuario("Juan", "4321"); 
+        Usuario usuario2 = new Usuario("Juanito", "4321"); 
         
-        try {
-            almacen_Login.registrar(usuario);
-        } catch (UsuarioYaExisteException ex) {
-            Logger.getLogger("").log(Level.INFO, "usuario ya existe");
-        }
         
-        try {
+        
+        
+        
+        /*
+            try {
             almacen_Login.registrar(usuario2);
-        } catch (UsuarioYaExisteException ex) {
+            } catch (UsuarioYaExisteException ex) {
             Logger.getLogger("").log(Level.INFO, "usuario ya existe");
-        }
-        
-        
-        
-        try {
+            }
+            
+            
+            
+            try {
             if(almacen_Login.identificar(usuario)!=null){
-                System.out.println("identificar ok");
+            System.out.println("identificar ok");
             } else {
-                System.out.println("identificar no ok");
+            System.out.println("identificar no ok");
             }
-        } catch (WrongPasswordException ex) {
+            } catch (WrongPasswordException ex) {
             Logger.getLogger("").log(Level.INFO, "contraseña incorrecta");
-        } catch (UsuarioNoExisteException ex) {
+            } catch (UsuarioNoExisteException ex) {
             Logger.getLogger("").log(Level.INFO, "usuario no existe");
-        }
-        
-        try {
+            }
+            
+            try {
             if(almacen_Login.identificar(usuario2)!=null){
-                System.out.println("identificar ok");
+            System.out.println("identificar ok");
             } else {
-                System.out.println("identificar no ok");
+            System.out.println("identificar no ok");
             }
-        } catch (WrongPasswordException ex) {
+            } catch (WrongPasswordException ex) {
             Logger.getLogger("").log(Level.INFO, "contraseña incorrecta");
-        } catch (UsuarioNoExisteException ex) {
+            } catch (UsuarioNoExisteException ex) {
             Logger.getLogger("").log(Level.INFO, "usuario no existe");
-        }
-        
+            }
+            */
     }
 }

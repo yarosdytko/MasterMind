@@ -101,11 +101,14 @@ public class Usuario implements Serializable{
             return false;
         }
         final Usuario other = (Usuario) obj;
-        if (this.nombre != other.nombre) {
-            return false;
-        }
-        
-        return true;
+        return this.nombre.equals(other.nombre);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 79 * hash + Objects.hashCode(this.nombre);
+        return hash;
     }
     
     

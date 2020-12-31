@@ -15,33 +15,40 @@ import java.util.ArrayList;
  * @author Yaros
  */
 public class Almacen_Login {
-    private final ArrayList<Usuario> usuarios = new ArrayList<>();
+    private ArrayList<Usuario> usuarios = new ArrayList<>();
     
-    private Usuario comprobarUsuario(Usuario usuario){
-        if(usuarios.contains(usuario)){
-            int i = usuarios.indexOf(usuario);
-            //System.out.println("Usuario existe");
-            return usuarios.get(i);
+    private Usuario usuarioExiste(String nombre){
+        Usuario usuario = new Usuario(nombre, "");
+        if(this.usuarios.contains(usuario)){
+            System.out.println("hay usuario con ese nombre");
+            int i = this.usuarios.indexOf(usuario);
+            System.out.println("Indice: "+i);
+            usuario = this.usuarios.get(i);
+            System.out.println("Usuario despues de get: "+usuario.toString());
         } else {
-            //System.out.println("usuario no existe");
-            return null;
+            System.out.println("no hay usuario");
+            usuario=null;
         }
+        
+        return usuario;
     }
     
-    
-    public void registrar(Usuario usuario) throws UsuarioYaExisteException {
-        if(comprobarUsuario(usuario)!=null){
+    public Usuario registrar(Usuario usuario) throws UsuarioYaExisteException {
+        if(usuarioExiste(usuario.getNombre())!=null){
             throw new UsuarioYaExisteException();
         } else {
-            usuarios.add(usuario);
-            //System.out.println("Usuario registrado");
+            Usuario u = new Usuario(usuario);
+            System.out.println("Registra, usuario no existe");
+            usuarios.add(u);
+            return u;
         }
     }
     
-    public Usuario identificar(Usuario usuario) throws WrongPasswordException, UsuarioNoExisteException {
-        Usuario u = comprobarUsuario(usuario); //compruebo si existe un usuario con su nombre en array de usuarios
+    public Usuario identificar(Usuario usuario) throws WrongPasswordException, UsuarioNoExisteException{
+        Usuario u = usuarioExiste(usuario.getNombre());
         if(u!=null){
-            if(u.getClave()==usuario.getClave()){
+            if(u.getClave() == null ? usuario.getClave() == null : u.getClave().equals(usuario.getClave())){
+                System.out.println("Usuario "+u.getNombre()+" identificado");
                 return u;
             } else {
                 throw new WrongPasswordException();
@@ -50,4 +57,5 @@ public class Almacen_Login {
             throw new UsuarioNoExisteException();
         }
     }
+    
 }
