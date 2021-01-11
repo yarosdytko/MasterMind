@@ -23,6 +23,10 @@ public class Pantalla extends javax.swing.JFrame {
     private Almacen_Login almacen = new Almacen_Login();
     private Usuario usuario_logueado;
     
+    //constantes para modo de juego
+    private final int ENTRENAMIENTO = 0;
+    private final int PARTIDA = 1;
+    
     /**
      * Creates new form Pantalla
      */
@@ -45,6 +49,24 @@ public class Pantalla extends javax.swing.JFrame {
     private void showMessage(String s){
         JOptionPane.showMessageDialog(rootPane, s);
     }
+    
+    private int seleccionarModoDeJuego(){
+        int i= -1;
+        
+        Object[] options={"Entrenamiento","Partida"};
+        
+        do{
+            i = JOptionPane.showOptionDialog(MenuPrincipal, "Selecciona modo de juego", 
+                "Modo de juego", JOptionPane.YES_NO_OPTION, 
+                JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+            if(i==-1){
+                showMessage("Por favor selecciona el modo de juego");
+            }
+        } while(i==-1);
+        
+        return i;
+    }   
+    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -55,6 +77,7 @@ public class Pantalla extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jDialog1 = new javax.swing.JDialog();
         Login = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -75,9 +98,19 @@ public class Pantalla extends javax.swing.JFrame {
         MenuPrincipal = new javax.swing.JPanel();
         jLabel10 = new javax.swing.JLabel();
 
+        javax.swing.GroupLayout jDialog1Layout = new javax.swing.GroupLayout(jDialog1.getContentPane());
+        jDialog1.getContentPane().setLayout(jDialog1Layout);
+        jDialog1Layout.setHorizontalGroup(
+            jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 400, Short.MAX_VALUE)
+        );
+        jDialog1Layout.setVerticalGroup(
+            jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 300, Short.MAX_VALUE)
+        );
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Master Mind");
-        setPreferredSize(new java.awt.Dimension(500, 500));
         setResizable(false);
         getContentPane().setLayout(new java.awt.CardLayout());
 
@@ -226,7 +259,7 @@ public class Pantalla extends javax.swing.JFrame {
                 .addGroup(NuevoUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonOKNUsuario)
                     .addComponent(jButtonVolverNUsuario))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(194, Short.MAX_VALUE))
         );
 
         getContentPane().add(NuevoUsuario, "card3");
@@ -239,7 +272,7 @@ public class Pantalla extends javax.swing.JFrame {
         MenuPrincipal.setLayout(MenuPrincipalLayout);
         MenuPrincipalLayout.setHorizontalGroup(
             MenuPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, MenuPrincipalLayout.createSequentialGroup()
+            .addGroup(MenuPrincipalLayout.createSequentialGroup()
                 .addContainerGap(227, Short.MAX_VALUE)
                 .addComponent(jLabel10)
                 .addGap(224, 224, 224))
@@ -289,6 +322,8 @@ public class Pantalla extends javax.swing.JFrame {
                 showMessage("Bienvenido "+usuario_logueado.getNombre());
                 Login.setVisible(false);
                 MenuPrincipal.setVisible(true);
+                int opcion = seleccionarModoDeJuego();
+                
             }
         }
     }//GEN-LAST:event_jButtonLoginActionPerformed
@@ -321,6 +356,9 @@ public class Pantalla extends javax.swing.JFrame {
             
             if(usuario!=null){
                 showMessage("Usuario "+usuario.getNombre()+" registrado");
+            } else {
+                showMessage("Algo ha ido mal, usuario no registrado");
+                System.exit(1);
             }
         }
     }//GEN-LAST:event_jButtonOKNUsuarioActionPerformed
@@ -370,6 +408,7 @@ public class Pantalla extends javax.swing.JFrame {
     private javax.swing.JButton jButtonNuevoUsuario;
     private javax.swing.JButton jButtonOKNUsuario;
     private javax.swing.JButton jButtonVolverNUsuario;
+    private javax.swing.JDialog jDialog1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;

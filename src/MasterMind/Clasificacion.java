@@ -5,10 +5,18 @@
  */
 package MasterMind;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author Yaros
  */
 public class Clasificacion {
+    private ArrayList<Usuario> usuarios = new ArrayList<>();
+
+    public Clasificacion() {
+    }
+    
+    
     
 }

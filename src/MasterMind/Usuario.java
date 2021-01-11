@@ -16,12 +16,12 @@ public class Usuario implements Serializable{
     private String nombre;
     private String clave;
     private Boolean administrador=false;
-    private int partidas_jugadas;
-    private int partidas_ganadas;
-    private int partidas_perdidas;
-    private int puntos_anotados;
-    private int puntos_encajados;
-    private int porcentaje_victorias;
+    private int partidas_jugadas=0;
+    private int partidas_ganadas=0;
+    private int partidas_perdidas=0;
+    private int puntos_anotados=0;
+    private int puntos_encajados=0;
+    private int porcentaje_victorias=0;
 
     public Usuario(String nombre, String clave) {
         this.nombre = nombre;
