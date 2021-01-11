@@ -98,6 +98,8 @@ public class Pantalla extends javax.swing.JFrame {
         MenuPrincipal = new javax.swing.JPanel();
         jLabel10 = new javax.swing.JLabel();
 
+        jDialog1.setModal(true);
+
         javax.swing.GroupLayout jDialog1Layout = new javax.swing.GroupLayout(jDialog1.getContentPane());
         jDialog1.getContentPane().setLayout(jDialog1Layout);
         jDialog1Layout.setHorizontalGroup(

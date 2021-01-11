@@ -40,6 +40,9 @@ public class Test {
         System.out.println("Combnacion 4: "+c4.toString());
         Combinacion c5 = new Combinacion("ARRV");
         System.out.println("Combnacion 5: "+c5.toString());
+        Combinacion c6 = new Combinacion("RVAA");
+        System.out.println("Combinacion 6: "+c6.toString());
+        
         
         System.out.println("Aciertos: "+c.devolverAciertos(c2));
         System.out.println("Colocados: "+c.devolverColocados(c2));
@@ -49,6 +52,10 @@ public class Test {
         System.out.println("Colocados: "+c.devolverColocados(c4));
         System.out.println("Aciertos: "+c.devolverAciertos(c5));
         System.out.println("Colocados: "+c.devolverColocados(c5));
+        System.out.println("Aciertos: "+c.devolverAciertos(c6));
+        System.out.println("Colocados: "+c.devolverColocados(c6));
+        
+        
         /*
             try {
             almacen_Login.registrar(usuario2);

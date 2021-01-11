@@ -14,11 +14,11 @@ import java.util.Random;
  */
 public class Combinacion {
     private final char [] COLORES = {'B','N','A','R','V','M'};
-    private char [] clave = new char[4];
+    private char [] clave;
     
     //constructor para generar clave de modo automatico
     public Combinacion(){
-        
+        this.clave = new char[4];
         Random rd = new Random();
         
         for(int i=0;i<this.clave.length;i++){
@@ -29,6 +29,7 @@ public class Combinacion {
     
     //constructor para generar clave de modo manual
     public Combinacion(String clave){
+        this.clave = new char[4];
         
         for(int i=0;i<this.clave.length;i++){
             this.clave[i]=clave.toUpperCase().charAt(i);
@@ -38,10 +39,12 @@ public class Combinacion {
     
     public int devolverAciertos(Combinacion c){
         int aciertos = 0;
-        char[] cl = clave.clone();
+        int ultimo_acertado=-1;
+        
         for (int i = 0; i < clave.length; i++) {
             for (int j = 0; j < clave.length; j++) {
-                if(cl[i]==c.getClave()[j]){
+                if(j!=ultimo_acertado && this.clave[i]==c.getClave()[j]){
+                    ultimo_acertado=j;
                     aciertos++;
                     break;
                 }
