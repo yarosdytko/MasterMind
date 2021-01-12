@@ -4,7 +4,8 @@
  * and open the template in the editor.
  */
 package MasterMind;
-import java.util.Scanner;
+
+import java.util.*;
 /**
  *
  * @author Yaros
@@ -18,8 +19,7 @@ public class Ronda {
     private Combinacion combinacion;
     private Scanner teclado = new Scanner(System.in);
     
-    public Ronda(Combinacion c){    //modo partida
-        
+    public Ronda(){    //modo partida
         numero_de_intentos = 10;
         puntos = 0;
     }
@@ -48,10 +48,14 @@ public class Ronda {
         return puntos;
     }
     
+    public Combinacion getClave(){
+        return combinacion;
+    }
+    
     public void calcularPistas(int contador_int, Combinacion clave, Combinacion intento){
         
-        aciertos[contador_int] = clave.devolverAciertos(intento);
-        colocados[contador_int] = clave.devolverColocados(intento);
+        this.aciertos[contador_int] = clave.devolverAciertos(intento);
+        this.colocados[contador_int] = clave.devolverColocados(intento);
         
     }
     
@@ -74,7 +78,7 @@ public class Ronda {
             //Se comprueba que ambas claves sean iguales.
             if(clave.toString() == intento.toString()){
                 //Se calcula el total de puntos de la ronda.
-                puntos = 10-i;
+                this.puntos = 10-i;
                 //Se cierra el bucle for.
                 i = numero_de_intentos;
                 //Se felicita al usuario.
