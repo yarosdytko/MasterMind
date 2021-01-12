@@ -21,7 +21,8 @@ public class Usuario implements Serializable{
     private int partidas_perdidas=0;
     private int puntos_anotados=0;
     private int puntos_encajados=0;
-    private int porcentaje_victorias=0;
+    private int porcentaje_victorias=(partidas_ganadas/partidas_perdidas)*100;
+    private Partida[] partidas = new Partida[partidas_jugadas];
 
     public Usuario(String nombre, String clave) {
         this.nombre = nombre;
@@ -45,6 +46,7 @@ public class Usuario implements Serializable{
         this.puntos_anotados = usuario.puntos_anotados;
         this.puntos_encajados = usuario.puntos_encajados;
         this.porcentaje_victorias = usuario.porcentaje_victorias;
+        this.partidas = usuario.partidas;
     }
     
 
@@ -82,6 +84,36 @@ public class Usuario implements Serializable{
 
     public int getPorcentaje_victorias() {
         return porcentaje_victorias;
+    }
+    
+    public Partida[] verPartidas(){
+        return partidas;
+    }
+    
+    public void agregarPartida(){
+        this.partidas_jugadas++;
+    }
+    
+    public void agregarVictoria(){
+        this.partidas_ganadas++;
+        this.agregarPartida();
+    }
+    
+    public void agregarDerrota(){
+        this.partidas_perdidas++;
+        this.agregarPartida();
+    }
+    
+    public void agregarPuntos_anotados(int puntos){
+        this.puntos_anotados += puntos;
+    }
+    
+    public void agregarPuntos_encajados(int puntos){
+        this.puntos_encajados += puntos;
+    }
+    
+    public void agregarPartida(Partida partida){
+        this.partidas[partidas_jugadas-1] = partida;
     }
 
     @Override
