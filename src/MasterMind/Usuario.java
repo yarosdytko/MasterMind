@@ -12,7 +12,7 @@ import java.util.Objects;
  *
  * @author Yaros
  */
-public class Usuario implements Serializable{
+public class Usuario implements Serializable, Comparable<Usuario>{
     private String nombre;
     private String clave;
     private Boolean administrador=false;
@@ -143,5 +143,10 @@ public class Usuario implements Serializable{
         return hash;
     }
     
+    //metodo comparador para poder usarlo en la clasificacion
+    @Override
+    public int compareTo(Usuario o) {
+        return this.getPartidas_ganadas() < o.getPartidas_ganadas()?1:-1;
+    }
     
 }
