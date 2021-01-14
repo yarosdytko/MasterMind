@@ -5,11 +5,9 @@
  */
 package InterfazGrafica;
 
-import Excepciones.UsuarioNoExisteException;
-import Excepciones.UsuarioYaExisteException;
-import Excepciones.WrongPasswordException;
-import MasterMind.Almacen_Login;
-import MasterMind.Usuario;
+import Excepciones.*;
+import MasterMind.*;
+import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -21,12 +19,21 @@ import javax.swing.JOptionPane;
 public class Pantalla extends javax.swing.JFrame {
     
     private Almacen_Login almacen = new Almacen_Login();
-    private Usuario usuario_logueado;
+    private Usuario ulog1 = null;
+    private Usuario ulog2 = null;
     
     //constantes para modo de juego
     private final int ENTRENAMIENTO = 0;
     private final int PARTIDA = 1;
+    private final int SALIR = 2;
     
+    //otras variables, modo entrenamiento
+    private int intentos;
+    private boolean entrenamientoStop = false;
+    private boolean intentosOK=false;
+    private boolean comboOK=false;
+    private Ronda rondaEntrenamiento = null;
+    private Combinacion combinacionEntrenamiento = null;
     /**
      * Creates new form Pantalla
      */
@@ -34,7 +41,7 @@ public class Pantalla extends javax.swing.JFrame {
         
         //añado un usuario para pruebas
         try {
-            almacen.registrar(new Usuario("test", "123"));
+            almacen.registrar(new Usuario("test", "123",true));
         } catch (UsuarioYaExisteException ex) {
             Logger.getLogger(Pantalla.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -43,7 +50,7 @@ public class Pantalla extends javax.swing.JFrame {
         
         Login.setVisible(true);
         NuevoUsuario.setVisible(false);
-        MenuPrincipal.setVisible(false);
+        Entrenamiento.setVisible(false);
     }
     
     private void showMessage(String s){
@@ -53,10 +60,10 @@ public class Pantalla extends javax.swing.JFrame {
     private int seleccionarModoDeJuego(){
         int i= -1;
         
-        Object[] options={"Entrenamiento","Partida"};
+        Object[] options={"Entrenamiento","Partida","Salir"};
         
         do{
-            i = JOptionPane.showOptionDialog(MenuPrincipal, "Selecciona modo de juego", 
+            i = JOptionPane.showOptionDialog(Entrenamiento, "Selecciona modo de juego", 
                 "Modo de juego", JOptionPane.YES_NO_OPTION, 
                 JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
             if(i==-1){
@@ -66,7 +73,9 @@ public class Pantalla extends javax.swing.JFrame {
         
         return i;
     }   
-    
+    private void finDeEntrenamiento(){
+        
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -78,6 +87,7 @@ public class Pantalla extends javax.swing.JFrame {
     private void initComponents() {
 
         jDialog1 = new javax.swing.JDialog();
+        jFileChooser1 = new javax.swing.JFileChooser();
         Login = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -95,8 +105,23 @@ public class Pantalla extends javax.swing.JFrame {
         jTextFieldPasswordNUsuario = new javax.swing.JTextField();
         jButtonOKNUsuario = new javax.swing.JButton();
         jButtonVolverNUsuario = new javax.swing.JButton();
-        MenuPrincipal = new javax.swing.JPanel();
+        Entrenamiento = new javax.swing.JPanel();
+        jLabel8 = new javax.swing.JLabel();
+        jTextFieldENumIntentos = new javax.swing.JTextField();
+        jButtonSetIntentos = new javax.swing.JButton();
+        jLabel9 = new javax.swing.JLabel();
+        jTextFieldECombinacion = new javax.swing.JTextField();
         jLabel10 = new javax.swing.JLabel();
+        jLabelEIntRestantes = new javax.swing.JLabel();
+        jLabel12 = new javax.swing.JLabel();
+        jLabelEIntRealizados = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextAreaEntrenamientoLog = new javax.swing.JTextArea();
+        jButtonEJugar = new javax.swing.JButton();
+        jToggleButton1 = new javax.swing.JToggleButton();
+        jButtonAddCombinacion = new javax.swing.JButton();
+        jButtonEVerClaveSercreta = new javax.swing.JButton();
+        Partida = new javax.swing.JPanel();
 
         jDialog1.setModal(true);
 
@@ -110,6 +135,8 @@ public class Pantalla extends javax.swing.JFrame {
             jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 300, Short.MAX_VALUE)
         );
+
+        jFileChooser1.setName(""); // NOI18N
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Master Mind");
@@ -140,6 +167,11 @@ public class Pantalla extends javax.swing.JFrame {
         });
 
         jButton3.setText("Cargar Datos");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout LoginLayout = new javax.swing.GroupLayout(Login);
         Login.setLayout(LoginLayout);
@@ -266,28 +298,146 @@ public class Pantalla extends javax.swing.JFrame {
 
         getContentPane().add(NuevoUsuario, "card3");
 
-        MenuPrincipal.setPreferredSize(new java.awt.Dimension(500, 500));
+        Entrenamiento.setToolTipText("Entrenamiento");
+        Entrenamiento.setPreferredSize(new java.awt.Dimension(500, 500));
 
-        jLabel10.setText("Login OK");
+        jLabel8.setText("Numero de intentos");
 
-        javax.swing.GroupLayout MenuPrincipalLayout = new javax.swing.GroupLayout(MenuPrincipal);
-        MenuPrincipal.setLayout(MenuPrincipalLayout);
-        MenuPrincipalLayout.setHorizontalGroup(
-            MenuPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(MenuPrincipalLayout.createSequentialGroup()
-                .addContainerGap(227, Short.MAX_VALUE)
-                .addComponent(jLabel10)
-                .addGap(224, 224, 224))
+        jButtonSetIntentos.setText("OK");
+        jButtonSetIntentos.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonSetIntentosActionPerformed(evt);
+            }
+        });
+
+        jLabel9.setText("Combinacion");
+
+        jLabel10.setText("Intentos definidos");
+
+        jLabelEIntRestantes.setText("-");
+
+        jLabel12.setText("Intentos realizados");
+
+        jLabelEIntRealizados.setText("-");
+
+        jTextAreaEntrenamientoLog.setEditable(false);
+        jTextAreaEntrenamientoLog.setColumns(25);
+        jTextAreaEntrenamientoLog.setFont(new java.awt.Font("Lucida Sans Unicode", 0, 12)); // NOI18N
+        jTextAreaEntrenamientoLog.setRows(5);
+        jScrollPane1.setViewportView(jTextAreaEntrenamientoLog);
+
+        jButtonEJugar.setText("Jugar");
+        jButtonEJugar.setEnabled(false);
+        jButtonEJugar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonEJugarActionPerformed(evt);
+            }
+        });
+
+        jToggleButton1.setText("Terminar Entrenamiento");
+
+        jButtonAddCombinacion.setText("Añadir");
+        jButtonAddCombinacion.setEnabled(false);
+        jButtonAddCombinacion.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonAddCombinacionActionPerformed(evt);
+            }
+        });
+
+        jButtonEVerClaveSercreta.setText("Ver clave secreta");
+        jButtonEVerClaveSercreta.setEnabled(false);
+        jButtonEVerClaveSercreta.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonEVerClaveSercretaActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout EntrenamientoLayout = new javax.swing.GroupLayout(Entrenamiento);
+        Entrenamiento.setLayout(EntrenamientoLayout);
+        EntrenamientoLayout.setHorizontalGroup(
+            EntrenamientoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(EntrenamientoLayout.createSequentialGroup()
+                .addGap(43, 43, 43)
+                .addGroup(EntrenamientoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(EntrenamientoLayout.createSequentialGroup()
+                        .addComponent(jToggleButton1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButtonEJugar))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, EntrenamientoLayout.createSequentialGroup()
+                        .addGroup(EntrenamientoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(EntrenamientoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(jLabel9)
+                                .addComponent(jLabel8))
+                            .addComponent(jLabel10)
+                            .addComponent(jLabel12))
+                        .addGap(47, 47, 47)
+                        .addGroup(EntrenamientoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(EntrenamientoLayout.createSequentialGroup()
+                                .addComponent(jLabelEIntRealizados)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(EntrenamientoLayout.createSequentialGroup()
+                                .addGroup(EntrenamientoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jTextFieldENumIntentos)
+                                    .addComponent(jTextFieldECombinacion, javax.swing.GroupLayout.DEFAULT_SIZE, 110, Short.MAX_VALUE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 29, Short.MAX_VALUE)
+                                .addGroup(EntrenamientoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jButtonSetIntentos)
+                                    .addComponent(jButtonAddCombinacion))
+                                .addGap(63, 63, 63))
+                            .addGroup(EntrenamientoLayout.createSequentialGroup()
+                                .addComponent(jLabelEIntRestantes)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jButtonEVerClaveSercreta)))))
+                .addContainerGap(30, Short.MAX_VALUE))
         );
-        MenuPrincipalLayout.setVerticalGroup(
-            MenuPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, MenuPrincipalLayout.createSequentialGroup()
-                .addContainerGap(256, Short.MAX_VALUE)
-                .addComponent(jLabel10)
-                .addGap(228, 228, 228))
+        EntrenamientoLayout.setVerticalGroup(
+            EntrenamientoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(EntrenamientoLayout.createSequentialGroup()
+                .addGap(31, 31, 31)
+                .addGroup(EntrenamientoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel8)
+                    .addComponent(jTextFieldENumIntentos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButtonSetIntentos))
+                .addGap(32, 32, 32)
+                .addGroup(EntrenamientoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel9)
+                    .addComponent(jTextFieldECombinacion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButtonAddCombinacion))
+                .addGap(29, 29, 29)
+                .addGroup(EntrenamientoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel12)
+                    .addComponent(jLabelEIntRealizados))
+                .addGap(18, 18, 18)
+                .addGroup(EntrenamientoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel10)
+                    .addComponent(jLabelEIntRestantes)
+                    .addComponent(jButtonEVerClaveSercreta))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(EntrenamientoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButtonEJugar)
+                    .addComponent(jToggleButton1))
+                .addContainerGap(59, Short.MAX_VALUE))
         );
 
-        getContentPane().add(MenuPrincipal, "card4");
+        getContentPane().add(Entrenamiento, "card4");
+
+        Partida.setPreferredSize(new java.awt.Dimension(500, 500));
+
+        javax.swing.GroupLayout PartidaLayout = new javax.swing.GroupLayout(Partida);
+        Partida.setLayout(PartidaLayout);
+        PartidaLayout.setHorizontalGroup(
+            PartidaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 500, Short.MAX_VALUE)
+        );
+        PartidaLayout.setVerticalGroup(
+            PartidaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 500, Short.MAX_VALUE)
+        );
+
+        getContentPane().add(Partida, "card4");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -309,7 +459,8 @@ public class Pantalla extends javax.swing.JFrame {
         } else {
             Usuario usuario = new Usuario(nombre, clave);
             try {
-                usuario_logueado=almacen.identificar(usuario);
+                ulog1=almacen.identificar(usuario);
+                System.out.println(ulog1.toString());
             } catch (WrongPasswordException ex) {
                 showMessage("Clave incorrecta");
             } catch (UsuarioNoExisteException ex) {
@@ -320,12 +471,22 @@ public class Pantalla extends javax.swing.JFrame {
                 jTextFieldLoginUsuario.setText("");
                 jTextFieldPasswordUsuario.setText("");
             }
-            if(usuario_logueado!=null){
-                showMessage("Bienvenido "+usuario_logueado.getNombre());
-                Login.setVisible(false);
-                MenuPrincipal.setVisible(true);
+            if(ulog1!=null){
+                showMessage("Bienvenido "+ulog1.getNombre());
+                /*Login.setVisible(false);
+                Entrenamiento.setVisible(true);*/
                 int opcion = seleccionarModoDeJuego();
-                
+                if(opcion==ENTRENAMIENTO){ // modo entrenamiento
+                    Login.setVisible(false);
+                    Entrenamiento.setVisible(true);
+                }
+                if(opcion==PARTIDA){ // modo partida
+                    Login.setVisible(false);
+                    Partida.setVisible(true);
+                }
+                if(opcion==SALIR){
+                    System.exit(0);
+                }
             }
         }
     }//GEN-LAST:event_jButtonLoginActionPerformed
@@ -360,10 +521,111 @@ public class Pantalla extends javax.swing.JFrame {
                 showMessage("Usuario "+usuario.getNombre()+" registrado");
             } else {
                 showMessage("Algo ha ido mal, usuario no registrado");
-                System.exit(1);
+                //System.exit(1);
             }
         }
     }//GEN-LAST:event_jButtonOKNUsuarioActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        // TODO add your handling code here:
+        jFileChooser1.setDialogTitle("Selecciona archivo");
+        jFileChooser1.setCurrentDirectory(new File(System.getProperty("user.dir")));
+        int result = jFileChooser1.showOpenDialog(Login);
+        
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButtonSetIntentosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSetIntentosActionPerformed
+        // TODO add your handling code here:
+        
+        String intString = "";
+        
+        intString = jTextFieldENumIntentos.getText();
+        
+        if(intString.isEmpty()){
+            showMessage("No se permiten campos vacios");
+        } else {
+            try {
+            intentos = Integer.parseInt(intString);
+            } catch (NumberFormatException nfe) {
+                showMessage("Formato incorrecto solo se admiten numeros");
+                jTextFieldENumIntentos.setText("");
+            }
+
+            if(intentos==0){
+                jLabelEIntRestantes.setText("infinito");
+            } else if(intentos<0){
+                showMessage("Solo se admiten enteros positivos");
+            } else {
+                jLabelEIntRestantes.setText(Integer.toString(intentos));
+            }
+            intentosOK=true;
+            jButtonSetIntentos.setEnabled(false);
+            jButtonAddCombinacion.setEnabled(true);
+            if(intentosOK && comboOK){
+                jButtonEJugar.setEnabled(true);
+            }
+        }
+        
+    }//GEN-LAST:event_jButtonSetIntentosActionPerformed
+
+    private void jButtonEJugarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEJugarActionPerformed
+        // TODO add your handling code here:
+        StringBuilder str = new StringBuilder();
+        
+        if(rondaEntrenamiento==null){
+            Ronda ronda = new Ronda(intentos);
+            rondaEntrenamiento=ronda;
+            if(ulog1.getAdministrador()==true){
+                jButtonEVerClaveSercreta.setEnabled(true);
+            }
+        }
+        //Combinacion combinacion = new Combinacion(combinacionEntrenamiento);
+        rondaEntrenamiento.jugar(combinacionEntrenamiento);
+        str.append(rondaEntrenamiento.getIntentosGastdos()).append(".-").append(rondaEntrenamiento.getIntento().toString());
+        str.append(" ").append(rondaEntrenamiento.getAciertos()).append(" aciertos con ").append(rondaEntrenamiento.getColocados()).append(" colocados");
+        if(rondaEntrenamiento.esGanadora()){
+            str.append("\n---- !!! GANADOR !!! ----");
+            entrenamientoStop=true;
+        }
+        if(rondaEntrenamiento.getIntentosGastdos()==intentos && !entrenamientoStop){
+            str.append("\nNo quedan mas intentos");
+            entrenamientoStop=true;
+        }
+        jTextAreaEntrenamientoLog.append(str.toString()+"\n");
+        jLabelEIntRealizados.setText(Integer.toString(rondaEntrenamiento.getIntentosGastdos()));
+        jButtonEJugar.setEnabled(false);
+        jButtonAddCombinacion.setEnabled(true);
+        jTextFieldECombinacion.grabFocus();
+    }//GEN-LAST:event_jButtonEJugarActionPerformed
+
+    private void jButtonAddCombinacionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddCombinacionActionPerformed
+        // TODO add your handling code here:
+        String s = jTextFieldECombinacion.getText();
+        if(s.isEmpty()){
+            showMessage("El campo no puede estar vacio");
+        } else {
+            combinacionEntrenamiento = new Combinacion(s);
+            if(combinacionEntrenamiento.checkCombinacion()){
+                jTextAreaEntrenamientoLog.append("Has añadido la combinacion: "+combinacionEntrenamiento.toString()+"\n");
+                comboOK=true;
+            } else {
+                showMessage("Combinacion no valida\nColores: B - blanco, "
+                    + "N - negro, A - azul, R - rojo, V - verde, M - marron");
+            }
+            
+            if(intentosOK && comboOK){
+                jButtonEJugar.setEnabled(true);
+            }
+
+        }
+        jTextFieldECombinacion.setText("");
+        jButtonAddCombinacion.setEnabled(false);
+    }//GEN-LAST:event_jButtonAddCombinacionActionPerformed
+
+    private void jButtonEVerClaveSercretaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEVerClaveSercretaActionPerformed
+        // TODO add your handling code here:
+        showMessage("La clave secreta es: "+rondaEntrenamiento.getClave().toString());
+    }//GEN-LAST:event_jButtonEVerClaveSercretaActionPerformed
 
     /**
      * @param args the command line arguments
@@ -402,25 +664,41 @@ public class Pantalla extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel Entrenamiento;
     private javax.swing.JPanel Login;
-    private javax.swing.JPanel MenuPrincipal;
     private javax.swing.JPanel NuevoUsuario;
+    private javax.swing.JPanel Partida;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButtonAddCombinacion;
+    private javax.swing.JButton jButtonEJugar;
+    private javax.swing.JButton jButtonEVerClaveSercreta;
     private javax.swing.JButton jButtonLogin;
     private javax.swing.JButton jButtonNuevoUsuario;
     private javax.swing.JButton jButtonOKNUsuario;
+    private javax.swing.JButton jButtonSetIntentos;
     private javax.swing.JButton jButtonVolverNUsuario;
     private javax.swing.JDialog jDialog1;
+    private javax.swing.JFileChooser jFileChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JLabel jLabelEIntRealizados;
+    private javax.swing.JLabel jLabelEIntRestantes;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextArea jTextAreaEntrenamientoLog;
+    private javax.swing.JTextField jTextFieldECombinacion;
+    private javax.swing.JTextField jTextFieldENumIntentos;
     private javax.swing.JTextField jTextFieldLoginUsuario;
     private javax.swing.JTextField jTextFieldNombreNUsuario;
     private javax.swing.JTextField jTextFieldPasswordNUsuario;
     private javax.swing.JTextField jTextFieldPasswordUsuario;
+    private javax.swing.JToggleButton jToggleButton1;
     // End of variables declaration//GEN-END:variables
 }

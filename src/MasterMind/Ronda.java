@@ -5,87 +5,159 @@
  */
 package MasterMind;
 
-import java.util.*;
+import java.util.ArrayList;
+
 /**
  *
  * @author Yaros
  */
+
 public class Ronda {
 
     private int numero_de_intentos;
+    private int intentos_gastados = 0;
     private int puntos;
-    private int[] aciertos;
-    private int[] colocados;
-    private Combinacion combinacion;
-    private Scanner teclado = new Scanner(System.in);
+    private ArrayList<Integer> aciertos = new ArrayList<>();
+    private ArrayList<Integer> colocados = new ArrayList<>();
+    private Combinacion combinacionSecreta;
+    private ArrayList<Combinacion> intentos = new ArrayList<>();
+    private boolean finRonda = false;
+    //private StringBuilder rondaLog = new StringBuilder();
     
-    public Ronda(){    //modo partida
-        numero_de_intentos = 10;
-        puntos = 0;
+    //modo partida
+    public Ronda(Combinacion combinacionSecreta){    
+        this.numero_de_intentos = 10;
+        this.puntos = 0;
+        this.combinacionSecreta=combinacionSecreta;
     }
     
-    public Ronda(int n){     //modo entrenamiento
-        
-        numero_de_intentos = n;
-        //Si el ususario introduce 0 intentos, tendrá intentos infinitos
-        if(numero_de_intentos == 0){
-            numero_de_intentos = Integer.MAX_VALUE;
-        }
-        combinacion = new Combinacion();    //comb random
-        
-        
-    }
-    
-    public Combinacion añadirCombinacion(){
-        String clave = teclado.nextLine();
-        
-        Combinacion c = new Combinacion(clave);
-        
-        return c;
+    //modo entrenamiento
+    public Ronda(int intentos){     
+        this.numero_de_intentos = intentos;
+        this.combinacionSecreta = new Combinacion();    //comb random para entrenamiento
     }
     
     public int getPuntos(){
-        return puntos;
+        return this.puntos;
     }
     
+    public int getIntentosGastdos(){
+        return this.intentos_gastados;
+    }
+    
+    //para obtener la clave secreta
     public Combinacion getClave(){
-        return combinacion;
+        return combinacionSecreta;
     }
     
-    public void calcularPistas(int contador_int, Combinacion clave, Combinacion intento){
+    //para obtener la clave del ultimo intento
+    public Combinacion getIntento(){
+        return this.intentos.get(intentos_gastados-1);
+    }
+    
+    //para obtener la clave de cualquier intento
+    /*public Combinacion getIntento(int numero_de_intento){
+        if(numero_de_intento<=intentos_gastados){
+            return intentos.get(numero_de_intento-1);
+        } else {
+            return null;
+        }
+    }*/
+    
+    public int getNumeroDeIntento(){
+        return intentos_gastados;
+    }
+    
+    public int getAciertos(){
+        return this.aciertos.get(intentos_gastados-1);
+    }
+    
+    public int getColocados(){
+        return this.colocados.get(intentos_gastados-1);
+    }
+    
+    //solo accesible para admin
+    public String verClave(boolean entrenamiento, boolean admin){
+        if(admin && entrenamiento){
+            return (this.getClave().toString());
+        }else{
+            return ("Necesitas ser administrador y estar jugando en entrenamiento para ver la clave");
+        }
+    }
+    
+    /*public void calcularPistas(int contador_int, Combinacion clave, Combinacion intento){
         
         this.aciertos[contador_int] = clave.devolverAciertos(intento);
         this.colocados[contador_int] = clave.devolverColocados(intento);
         
-    }
+    }*/
     
-    public void jugar(Combinacion clave){
-        Combinacion[] intento = new Combinacion[numero_de_intentos];
-        
-        //Bucle que se repite hasta que el jugador acierte o se terminen los intentos
-        for(int i = 0; i < numero_de_intentos; i++){
-            //Se pide la clave al usuario
-            System.out.print("Introduce el " + (i+1) +" intento: ");
-            intento[i] = añadirCombinacion(); 
-            
-            //Se calculan los aciertos y los colocados
-            calcularPistas(i, combinacion, intento[i]);
-            
-            //Se informa de los aciertos y fallos en cada intento
-            for(int j = 0; j <= i; j++){
-                System.out.println((j+1)+".- "+ aciertos[j]+ " acierto(-s) con "+ colocados[j]+ " colocado(-s)");
-            }
-            //Se comprueba que ambas claves sean iguales.
-            if(clave.toString() == intento.toString()){
-                //Se calcula el total de puntos de la ronda.
-                this.puntos = 10-i;
-                //Se cierra el bucle for.
-                i = numero_de_intentos;
-                //Se felicita al usuario.
-                System.out.println("¡¡¡GANADOR!!!");
-            }
+    //solo accesible para admin
+    public void setIntentos(int n, boolean administrador){
+        if(administrador){
+            this.numero_de_intentos = n;
+        }else{
+            System.out.println("Necesitas ser administrador para hacer eso");
         }
     }
+    
+    public boolean esGanadora(){
+        return this.getAciertos()==4 && this.getColocados()==4;
+    }
+    
+    /*public String getRondaLog(){
+        return this.rondaLog.toString();
+    }*/
+    
+    //se puede prescindir de este metodo, al menos de momento
+    /*public void añadirCombinacion(Combinacion c){
+        this.intentos.add(new Combinacion(c)); //se añade una combinacion nueva al array de intentos
+    }*/
+    
+    
+    
+    public void jugar(Combinacion c){
+        //StringBuilder sb = new StringBuilder();
+        intentos_gastados++;
+
+        if(!finRonda){
+            Combinacion intento = new Combinacion(c);
+            intentos.add(intento);
+            //sb.append(intentos_gastados+".- "+intento.toString()+" ");
+            
+            //calculo colocados y aciertos 
+            int ac = combinacionSecreta.devolverAciertos(intento);
+            int col = combinacionSecreta.devolverColocados(intento);
+            this.aciertos.add(ac);
+            this.colocados.add(col);
+            
+            //sb.append(ac+" aciertos con "+col+" colocados\n");
+            
+            if(esGanadora()){
+                finRonda=true;
+                //sb.append("\n------- !!Ganador!!-------\n");
+            }
+        }
+        if(intentos_gastados==numero_de_intentos){
+            finRonda=true;
+            
+           // sb.append("Ya se han agotado todos los intentos, fin de la ronda\n");
+        }
+        //rondaLog.append(sb.toString());
+    }
+    
+    /*
+    hay que tunear el to string, aunqe no estoy seguro que en esta clase haga falta ese metodo
+    @Override
+    public String toString(){
+        StringBuilder s = new StringBuilder();
+        s.append("Combinación de la ronda: "+ combinacion+ "\n-------------\n");
+        for(int i = 0; i < intentos.size(); i++){
+            s.append("Intento"+(i+1)+".- "+ aciertos[i]+ " acierto(-s) con "+ colocados[i]+" colocado(-s)\n");
+        }
+        s.append("----------\nTotal de puntos: "+puntos);
+        return (s.toString());
+    }*/
 
 
 }

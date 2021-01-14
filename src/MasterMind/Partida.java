@@ -28,7 +28,7 @@ public class Partida {
         this.usuario1= usuario1;
     }
     
-    
+    /*
     public void jugarPartida(Usuario usuario1, Usuario usuario2){
         this.numero_de_rondas = 6;
         
@@ -84,7 +84,7 @@ public class Partida {
         usuario2.agregarPartida(this);
     }
     
-    
+    */
 
 
 }

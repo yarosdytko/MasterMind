@@ -6,6 +6,7 @@
 package MasterMind;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Objects;
 
 /**
@@ -21,18 +22,22 @@ public class Usuario implements Serializable, Comparable<Usuario>{
     private int partidas_perdidas=0;
     private int puntos_anotados=0;
     private int puntos_encajados=0;
-    private int porcentaje_victorias=(partidas_ganadas/partidas_perdidas)*100;
-    private Partida[] partidas = new Partida[partidas_jugadas];
+    //private int porcentaje_victorias=(partidas_ganadas/partidas_perdidas)*100; no se puede poner esto tal cual, el programa peta
+    private int porcentaje_victorias=0;
+    //private Partida[] partidas = new Partida[partidas_jugadas]; mejor usar arrayList , mas facil de gestionar
+    private ArrayList<Partida> partidasJugadas;
 
     public Usuario(String nombre, String clave) {
         this.nombre = nombre;
         this.clave = clave;
+        this.partidasJugadas = new ArrayList<>();
     }
 
     public Usuario(String nombre, String clave, Boolean administrador) {
         this.nombre = nombre;
         this.clave = clave;
         this.administrador = administrador;
+        this.partidasJugadas = new ArrayList<>();
     }
     
     //constructor copia, por si hace falta
@@ -40,13 +45,14 @@ public class Usuario implements Serializable, Comparable<Usuario>{
     public Usuario(Usuario usuario) {
         this.nombre = usuario.nombre;
         this.clave = usuario.clave;
+        this.administrador = usuario.administrador;
         this.partidas_jugadas = usuario.partidas_jugadas;
         this.partidas_ganadas = usuario.partidas_ganadas;
         this.partidas_perdidas = usuario.partidas_perdidas;
         this.puntos_anotados = usuario.puntos_anotados;
         this.puntos_encajados = usuario.puntos_encajados;
         this.porcentaje_victorias = usuario.porcentaje_victorias;
-        this.partidas = usuario.partidas;
+        this.partidasJugadas = usuario.partidasJugadas;
     }
     
 
@@ -86,9 +92,9 @@ public class Usuario implements Serializable, Comparable<Usuario>{
         return porcentaje_victorias;
     }
     
-    public Partida[] verPartidas(){
+    /*public Partida[] verPartidas(){
         return partidas;
-    }
+    }*/
     
     public void agregarPartida(){
         this.partidas_jugadas++;
@@ -113,8 +119,14 @@ public class Usuario implements Serializable, Comparable<Usuario>{
     }
     
     public void agregarPartida(Partida partida){
-        this.partidas[partidas_jugadas-1] = partida;
+        this.partidasJugadas.add(partida);
     }
+
+    public void setPartidas_ganadas(int partidas_ganadas) {
+        this.partidas_ganadas = partidas_ganadas;
+    }
+    
+    
 
     @Override
     public String toString() {
@@ -144,9 +156,10 @@ public class Usuario implements Serializable, Comparable<Usuario>{
     }
     
     //metodo comparador para poder usarlo en la clasificacion
+    //por defecto se compara por porcentaje de victoras
     @Override
     public int compareTo(Usuario o) {
-        return this.getPartidas_ganadas() < o.getPartidas_ganadas()?1:-1;
+        return this.getPorcentaje_victorias() < o.getPorcentaje_victorias()?1:-1;
     }
     
 }
