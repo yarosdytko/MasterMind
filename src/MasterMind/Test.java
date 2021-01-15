@@ -30,17 +30,37 @@ public class Test {
         Usuario usuario = new Usuario("Juan", "1234"); 
         Usuario usuario2 = new Usuario("Juanito", "4321"); 
        
-//        System.out.println("Combnacion 2: "+c2.toString());
-        Combinacion c3 = new Combinacion("VVRR");
-//        System.out.println("Combnacion 3: "+c3.toString());
-        Combinacion c4 = new Combinacion("ARAV");
-//        System.out.println("Combnacion 4: "+c4.toString());
-        Combinacion c5 = new Combinacion("ARRV");
-//        System.out.println("Combnacion 5: "+c5.toString());
-        Combinacion c6 = new Combinacion("RVAA");
+        Combinacion c1 = new Combinacion("RVAA");
         
-        System.out.println("Combinacion 6: "+c6.toString());
+        Combinacion c2 = new Combinacion("BBNN");
         
+        Combinacion c3 = new Combinacion("AAVV");
+
+        Combinacion c4 = new Combinacion("VVRR");
+
+        Combinacion c5 = new Combinacion("VRAA");
+
+        
+        int aciertos2 = c1.devolverAciertos(c2);
+        int colocados2 = c1.devolverColocados(c2);
+        
+        System.out.println(aciertos2+" | "+colocados2);
+        
+        int aciertos3 = c1.devolverAciertos(c3);
+        int colocados3 = c1.devolverColocados(c3);
+        
+        System.out.println(aciertos3+" | "+colocados3);
+        
+        int aciertos4 = c1.devolverAciertos(c4);
+        int colocados4 = c1.devolverColocados(c4);
+        
+        System.out.println(aciertos4+" | "+colocados4);
+        
+        int aciertos5 = c1.devolverAciertos(c5);
+        int colocados5 = c1.devolverColocados(c5);
+        
+        System.out.println(aciertos5+" | "+colocados5);
+        /*
         Ronda r = new Ronda(c6);
         r.jugar(c3);
         
@@ -54,7 +74,7 @@ public class Test {
             str.append("---- !!! GANADOR !!! ----");
         }
         //System.out.println(r.getRondaLog());
-        
+        */
 //        
 //        
 //        System.out.println("Aciertos: "+c.devolverAciertos(c2));

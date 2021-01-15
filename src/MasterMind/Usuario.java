@@ -92,10 +92,6 @@ public class Usuario implements Serializable, Comparable<Usuario>{
         return porcentaje_victorias;
     }
     
-    /*public Partida[] verPartidas(){
-        return partidas;
-    }*/
-    
     public void agregarPartida(){
         this.partidas_jugadas++;
     }

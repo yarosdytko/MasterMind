@@ -5,8 +5,11 @@
  */
 package MasterMind;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
+import javafx.util.converter.LocalDateTimeStringConverter;
 
 /**
  *
@@ -15,17 +18,60 @@ import java.util.ArrayList;
 public class Partida {
     private LocalDateTime fecha;
     private int numero_de_rondas;
+    private int rondas_gastadas;
+    private int puntos = 10;
     private Usuario usuario1;
     private Usuario usuario2;
-    private Ronda[] rondas = new Ronda[numero_de_rondas];
+    private ArrayList<Ronda> rondas = new ArrayList<>();
+    private boolean finRonda = false;
 
     public Partida(Usuario usuario1, Usuario usuario2) {    //Partida normal
         this.usuario1 = usuario1;
-        this.usuario2 = usuario2;       
+        this.usuario2 = usuario2;
+        this.numero_de_rondas=3;
+        this.rondas_gastadas=0;
+        this.fecha= LocalDateTime.now();
     }
     
-    public Partida(Usuario usuario1){   //Partida entrenamiento
-        this.usuario1= usuario1;
+    public void addRonda(Ronda ronda){
+        this.rondas.add(ronda);
+    }
+    
+    public int getIntentos(){
+        return this.getRonda().getIntentos();
+    }
+    
+    public int getIntentosGastados(){
+        return this.getRonda().getIntentosGastdos();
+    }
+    
+    public int getRondasRestantes(){
+        return (this.numero_de_rondas-this.rondas_gastadas);
+    }
+    
+    public void jugarRonda(Combinacion combinacion){
+        this.getRonda().jugar(combinacion);
+        if(this.getRonda().getIntentosRestantes()==0 || this.getRonda().esGanadora()){
+            if(this.getRondasRestantes()==0){
+                this.usuario1.agregarPartida(this);
+                this.usuario2.agregarPartida(this);
+            }
+            finRonda = true;
+            rondas_gastadas++; //si se acaba una ronda paso a la siguente
+        } else {
+            finRonda=false;
+        }
+    }
+    
+    public boolean finRonda(){
+        return finRonda;
+    }
+    
+    
+    
+    //devuelve la ultima ronda del array de rondas, que es a su vez la ronda acual
+    public Ronda getRonda(){
+        return this.rondas.get(this.rondas.size()-1);
     }
     
     /*
@@ -85,6 +131,18 @@ public class Partida {
     }
     
     */
+
+    public int getNumero_de_rondas() {
+        return numero_de_rondas;
+    }
+
+    public int getRondas_gastadas() {
+        return rondas_gastadas+1;
+    }
+
+    public int getPuntos() {
+        return puntos;
+    }
 
 
 }

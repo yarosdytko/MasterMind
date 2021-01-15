@@ -65,7 +65,11 @@ public class Ronda {
     }*/
     
     public int getNumeroDeIntento(){
-        return intentos_gastados;
+        return this.intentos_gastados;
+    }
+    
+    public int getIntentos(){
+        return this.numero_de_intentos;
     }
     
     public int getAciertos(){
@@ -99,6 +103,10 @@ public class Ronda {
         }else{
             System.out.println("Necesitas ser administrador para hacer eso");
         }
+    }
+    
+    public int getIntentosRestantes(){
+        return (this.numero_de_intentos-this.intentos_gastados);
     }
     
     public boolean esGanadora(){
