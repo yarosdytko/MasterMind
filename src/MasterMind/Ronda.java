@@ -38,10 +38,11 @@ public class Ronda {
     }
     
     public int getPuntos(){
+        
         return this.puntos;
     }
     
-    public int getIntentosGastdos(){
+    public int getIntentosGastados(){
         return this.intentos_gastados;
     }
     
@@ -142,6 +143,7 @@ public class Ronda {
             //sb.append(ac+" aciertos con "+col+" colocados\n");
             
             if(esGanadora()){
+                this.puntos = (this.numero_de_intentos - this.intentos_gastados);
                 finRonda=true;
                 //sb.append("\n------- !!Ganador!!-------\n");
             }
@@ -154,18 +156,18 @@ public class Ronda {
         //rondaLog.append(sb.toString());
     }
     
-    /*
-    hay que tunear el to string, aunqe no estoy seguro que en esta clase haga falta ese metodo
+    
+    //hay que tunear el to string, aunqe no estoy seguro que en esta clase haga falta ese metodo
     @Override
     public String toString(){
         StringBuilder s = new StringBuilder();
-        s.append("Combinación de la ronda: "+ combinacion+ "\n-------------\n");
+        s.append("Combinación de la ronda: "+ combinacionSecreta+ "\n-------------\n");
         for(int i = 0; i < intentos.size(); i++){
-            s.append("Intento"+(i+1)+".- "+ aciertos[i]+ " acierto(-s) con "+ colocados[i]+" colocado(-s)\n");
+            s.append("Intento"+(i+1)+".- "+intentos.get(i).toString()+": "+ aciertos.get(i)+ " acierto(-s) con "+ colocados.get(i)+" colocado(-s)\n");
         }
         s.append("----------\nTotal de puntos: "+puntos);
         return (s.toString());
-    }*/
+    }
 
 
 }
