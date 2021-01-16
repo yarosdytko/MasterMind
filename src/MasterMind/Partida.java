@@ -43,7 +43,7 @@ public class Partida {
     }
     
     public int getIntentosGastados(){
-        return this.getRonda().getIntentosGastdos();
+        return this.getRonda().getIntentosGastados();
     }
     
     public int getRondasRestantes(){
@@ -76,6 +76,10 @@ public class Partida {
         return this.rondas.get(this.rondas.size()-1);
     }
     
+    public Ronda getRonda(int i){
+        return this.rondas.get(i);
+    }
+    
     /*
     public void jugarPartida(Usuario usuario1, Usuario usuario2){
         this.numero_de_rondas = 6;
@@ -94,7 +98,8 @@ public class Partida {
         this.rondas[0]= new Ronda(10);
         this.rondas[0].jugar(rondas[0].getClave());
     }
-    
+    */
+    /*
     public void asignarEstadísticas(){
         int puntosUsuario1 = 0;
         int puntosUsuario2 = 0;
@@ -102,9 +107,9 @@ public class Partida {
         //Cálculo de los puntos totales de cada jugador
         for(int i = 0; i < numero_de_rondas; i++){
             if((i%2) == 0){
-               puntosUsuario1 += this.rondas[i].getPuntos();
+               puntosUsuario1 += this.rondas.get(i).getPuntos();
             }else if((i%2) != 0){
-               puntosUsuario2 += this.rondas[i].getPuntos();
+               puntosUsuario2 += this.rondas.get(i).getPuntos();
             }
         }
         
@@ -131,8 +136,8 @@ public class Partida {
         usuario1.agregarPartida(this);
         usuario2.agregarPartida(this);
     }
-    
     */
+    
 
     public int getNumero_de_rondas() {
         return numero_de_rondas;
@@ -161,10 +166,13 @@ public class Partida {
         sb.append(", hora=").append(this.getHora());
         sb.append("\n numero_de_rondas=").append(numero_de_rondas);
         sb.append(", rondas_gastadas=").append(rondas_gastadas); 
-        //sb.append(", puntos=").append(puntos);
+        sb.append(", puntos=").append(puntos);
         sb.append("\n usuario1=").append(usuario1.getNombre());
         sb.append(", usuario2=").append(usuario2.getNombre());
-        //sb.append(", rondas=").append(rondas.);
+        for(int i = 0; i < rondas.size(); i++){
+            sb.append("Ronda "+(i-1)+"=> Clave: "+rondas.get(i).getClave()+", Total de intentos: "+rondas.get(i).getIntentosGastados()+"\n");
+        }
+        //sb.append(", rondas=").append(rondas);
         //sb.append(", finRonda=").append(finRonda);
         sb.append('}');
         return sb.toString();
