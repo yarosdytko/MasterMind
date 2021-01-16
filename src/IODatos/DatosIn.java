@@ -11,8 +11,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 
 /**
- *
- * @author Yaros
+ *  Esta clase deserializa cualquier objeto que se le pasa
+ *  para recuperar datos del disco
+ *  @author Yaros
  */
 public class DatosIn {
     private FileInputStream file;

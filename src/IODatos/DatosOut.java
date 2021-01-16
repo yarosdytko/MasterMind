@@ -10,8 +10,9 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 /**
- *
- * @author Yaros
+ *  Esta clase serializa cualquier objeto que se le pasa
+ *  para guardar datos en disco
+ *  @author Yaros
  */
 public class DatosOut {
     

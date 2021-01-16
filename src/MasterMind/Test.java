@@ -27,8 +27,16 @@ public class Test {
         Almacen_Login almacen_Login = new Almacen_Login();
         Clasificacion clasificacion = new Clasificacion();
         
+        
+        
         Usuario usuario = new Usuario("Juan", "1234"); 
         Usuario usuario2 = new Usuario("Juanito", "4321"); 
+        
+        Partida p = new Partida(usuario, usuario2);
+        
+        System.out.println(p.getFecha());
+        System.out.println(p.getHora());
+        System.out.println(p.toString());
        
         Combinacion c1 = new Combinacion("RVAA");
         
@@ -60,6 +68,8 @@ public class Test {
         int colocados5 = c1.devolverColocados(c5);
         
         System.out.println(aciertos5+" | "+colocados5);
+        
+        
         /*
         Ronda r = new Ronda(c6);
         r.jugar(c3);

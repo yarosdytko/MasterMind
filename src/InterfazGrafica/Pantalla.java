@@ -6,12 +6,19 @@
 package InterfazGrafica;
 
 import Excepciones.*;
+import IODatos.DatosIn;
+import IODatos.DatosOut;
 import MasterMind.*;
 import java.io.File;
-import java.util.Arrays;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
 
 /**
  *
@@ -20,13 +27,17 @@ import javax.swing.JOptionPane;
 public class Pantalla extends javax.swing.JFrame {
     
     private Almacen_Login almacen = new Almacen_Login();
+    //private Clasificacion clasificacion = new Clasificacion();
     private Usuario ulog1 = null;
     private Usuario ulog2 = null;
     
     //constantes para modo de juego
     private final int ENTRENAMIENTO = 0;
     private final int PARTIDA = 1;
-    private final int SALIR = 2;
+    private final int ESTADISTICA = 2; 
+    private final int CLASIFICACION = 3;
+    private final int GUARDAR = 4;
+    private final int SALIR = 5;
     
     //otras variables, modo entrenamiento
     private int intentos;
@@ -49,18 +60,19 @@ public class Pantalla extends javax.swing.JFrame {
     public Pantalla() {
         
         //añado un usuario para pruebas
-        try {
+        /*try {
             almacen.registrar(new Usuario("u1", "123",true));
             almacen.registrar(new Usuario("u2", "123",true));
         } catch (UsuarioYaExisteException ex) {
             Logger.getLogger(Pantalla.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }*/
         
         initComponents();
         
         Login.setVisible(true);
         NuevoUsuario.setVisible(false);
         Entrenamiento.setVisible(false);
+        EstadisticaUsuario.setVisible(false);
         Partida.setVisible(false);
     }
     
@@ -76,12 +88,12 @@ public class Pantalla extends javax.swing.JFrame {
     private int seleccionarModoDeJuego(){
         int i= -1;
         
-        Object[] options={"Entrenamiento","Partida","Salir"};
+        Object[] options={"Entrenamiento","Partida","Estadistica","\nClasificaion","Guardar","Salir"};
         
         do{
             i = JOptionPane.showOptionDialog(this, "Selecciona modo de juego", 
                 "Modo de juego", JOptionPane.YES_NO_OPTION, 
-                JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+                JOptionPane.PLAIN_MESSAGE, null, options, options[5]);
             if(i==-1){
                 showMessage("Por favor selecciona una de las opciones");
             }
@@ -90,12 +102,103 @@ public class Pantalla extends javax.swing.JFrame {
         return i;
     }
     
-    private void setVentana(int opcion){
+    /*NO TERMINADO AUN*/
+    private void verEstadistica(Usuario usuario){
+        jTextAreaEstUsuario.setText(""); // se limpia el area de texto
+        jLabelESTPJugadas.setText(Integer.toString(usuario.getPartidas_jugadas()));
+        jLabelESTPGanadas.setText(Integer.toString(usuario.getPartidas_ganadas()));
+        jLabelESTPPerdidas.setText(Integer.toString(usuario.getPartidas_perdidas()));
+        jLabelESTPVictorias.setText(Integer.toString(usuario.getPorcentaje_victorias()));
+        jLabelESTPAnotados.setText(Integer.toString(usuario.getPuntos_anotados()));
+        jLabelESTPEncajados.setText(Integer.toString(usuario.getPuntos_encajados()));
+        //
+        StringBuilder sb = new StringBuilder();
+        if(usuario.getPartidas_jugadas()>0){
+            ArrayList<Partida> partidasUsuario = usuario.getPartidasJugadas();
+            
+            for (int i = 0; i < partidasUsuario.size(); i++) {
+                sb.append(i+1+" "+partidasUsuario.get(i).toString()+"\n");
+            }
+        } else {
+            sb.append("El usuario "+usuario.getNombre()+" no ha jugado partidas");
+        }
+        jTextAreaEstUsuario.setText(sb.toString());
+
+    }
+    
+    private void guardarDatosEnDisco(){
+        jFileChooser1.setDialogTitle("Guardar archivo");
+        jFileChooser1.setCurrentDirectory(new File(System.getProperty("user.dir")));
+        jFileChooser1.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        int result = jFileChooser1.showSaveDialog(rootPane);
+        if(result==JFileChooser.APPROVE_OPTION){
+            //escribir datos
+            String nombreArchivo = jFileChooser1.getSelectedFile().getName();
+            DatosOut salidaDatos = new DatosOut();
+            try {
+                salidaDatos.open(nombreArchivo);
+            } catch (IOException ex) {
+                Logger.getLogger(Pantalla.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            try {
+                salidaDatos.write(almacen);
+            } catch (IOException ex) {
+                Logger.getLogger(Pantalla.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            try {
+                salidaDatos.close();
+            } catch (IOException ex) {
+                Logger.getLogger(Pantalla.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            showMessage("Datos guardados en archivo: "+nombreArchivo);
+        }
+        
+        mostrarMenu();
+    }
+    
+    private void leerDatosDeDisco(){
+        jFileChooser1.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        jFileChooser1.setDialogTitle("Selecciona archivo");
+        jFileChooser1.setCurrentDirectory(new File(System.getProperty("user.dir")));
+        int result = jFileChooser1.showOpenDialog(rootPane);
+        if(result==JFileChooser.APPROVE_OPTION){
+            String nombreArchivo = jFileChooser1.getSelectedFile().getName();
+            DatosIn entradaDatos = new DatosIn();
+            
+            try {
+                entradaDatos.open(nombreArchivo);
+            } catch (IOException ex) {
+                Logger.getLogger(Pantalla.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                almacen = (Almacen_Login)entradaDatos.read();
+            } catch (IOException | ClassNotFoundException ex) {
+                Logger.getLogger(Pantalla.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                entradaDatos.close();
+            } catch (IOException ex) {
+                Logger.getLogger(Pantalla.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            if(almacen!=null){
+                showMessage("Datos cargados");
+            } else {
+                showMessage("No ha sido posible cargar datos");
+            }
+        }
+    }
+    
+    private void mostrarMenu(){
+        int opcion = seleccionarModoDeJuego();
         switch(opcion){
             case ENTRENAMIENTO:
                 entrenamientoReset();
                 Login.setVisible(false);
                 NuevoUsuario.setVisible(false);
+                EstadisticaUsuario.setVisible(false);
                 Entrenamiento.setVisible(true);
                 Partida.setVisible(false);
                 break;
@@ -104,8 +207,23 @@ public class Pantalla extends javax.swing.JFrame {
                 Login.setVisible(false);
                 NuevoUsuario.setVisible(false);
                 Entrenamiento.setVisible(false);
+                EstadisticaUsuario.setVisible(false);
                 Partida.setVisible(true);
                 showLoginDialog();
+                break;
+                /*aqui ira un case mas*/
+                
+            case GUARDAR:
+                guardarDatosEnDisco();
+                break;
+            case ESTADISTICA:
+                verEstadistica(ulog1);
+                Login.setVisible(false);
+                NuevoUsuario.setVisible(false);
+                Entrenamiento.setVisible(false);
+                EstadisticaUsuario.setVisible(false);
+                Partida.setVisible(false);
+                EstadisticaUsuario.setVisible(true);
                 break;
             case SALIR:
                 System.exit(0);
@@ -222,7 +340,7 @@ public class Pantalla extends javax.swing.JFrame {
                 }
             } else {
                 i=-2;
-                setVentana(seleccionarModoDeJuego());
+                mostrarMenu();
             }
             
         } while(i==-1);
@@ -256,7 +374,7 @@ public class Pantalla extends javax.swing.JFrame {
         jTextFieldLoginUsuario = new javax.swing.JTextField();
         jButtonNuevoUsuario = new javax.swing.JButton();
         jButtonLogin = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
+        jButtonCargarDatos = new javax.swing.JButton();
         jPasswordFieldPasswordUsuario = new javax.swing.JPasswordField();
         NuevoUsuario = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
@@ -302,6 +420,22 @@ public class Pantalla extends javax.swing.JFrame {
         jButton5 = new javax.swing.JButton();
         jLabelPUsuario1 = new javax.swing.JLabel();
         jLabelPUsuario2 = new javax.swing.JLabel();
+        EstadisticaUsuario = new javax.swing.JPanel();
+        jLabel19 = new javax.swing.JLabel();
+        jLabel20 = new javax.swing.JLabel();
+        jLabel21 = new javax.swing.JLabel();
+        jLabel25 = new javax.swing.JLabel();
+        jLabel26 = new javax.swing.JLabel();
+        jLabel27 = new javax.swing.JLabel();
+        jLabelESTPVictorias = new javax.swing.JLabel();
+        jLabelESTPAnotados = new javax.swing.JLabel();
+        jLabelESTPEncajados = new javax.swing.JLabel();
+        jLabelESTPJugadas = new javax.swing.JLabel();
+        jLabelESTPGanadas = new javax.swing.JLabel();
+        jLabelESTPPerdidas = new javax.swing.JLabel();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        jTextAreaEstUsuario = new javax.swing.JTextArea();
+        jButtonEstVolver = new javax.swing.JButton();
 
         jDialog1.setModal(true);
 
@@ -404,10 +538,10 @@ public class Pantalla extends javax.swing.JFrame {
             }
         });
 
-        jButton3.setText("Cargar Datos");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        jButtonCargarDatos.setText("Cargar Datos");
+        jButtonCargarDatos.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                jButtonCargarDatosActionPerformed(evt);
             }
         });
 
@@ -417,9 +551,6 @@ public class Pantalla extends javax.swing.JFrame {
             LoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, LoginLayout.createSequentialGroup()
                 .addGroup(LoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(LoginLayout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton3))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, LoginLayout.createSequentialGroup()
                         .addGap(184, 184, 184)
                         .addComponent(jLabel3)
@@ -427,6 +558,9 @@ public class Pantalla extends javax.swing.JFrame {
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, LoginLayout.createSequentialGroup()
                         .addGap(105, 105, 105)
                         .addGroup(LoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(LoginLayout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(jButtonCargarDatos))
                             .addGroup(LoginLayout.createSequentialGroup()
                                 .addComponent(jButtonNuevoUsuario)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -438,7 +572,8 @@ public class Pantalla extends javax.swing.JFrame {
                                 .addGap(87, 87, 87)
                                 .addGroup(LoginLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(jTextFieldLoginUsuario, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)
-                                    .addComponent(jPasswordFieldPasswordUsuario))))))
+                                    .addComponent(jPasswordFieldPasswordUsuario))
+                                .addGap(0, 0, Short.MAX_VALUE)))))
                 .addGap(103, 103, 103))
         );
         LoginLayout.setVerticalGroup(
@@ -459,7 +594,7 @@ public class Pantalla extends javax.swing.JFrame {
                     .addComponent(jButtonNuevoUsuario)
                     .addComponent(jButtonLogin))
                 .addGap(76, 76, 76)
-                .addComponent(jButton3)
+                .addComponent(jButtonCargarDatos)
                 .addContainerGap(96, Short.MAX_VALUE))
         );
 
@@ -821,6 +956,116 @@ public class Pantalla extends javax.swing.JFrame {
 
         getContentPane().add(Partida, "card4");
 
+        EstadisticaUsuario.setPreferredSize(new java.awt.Dimension(500, 500));
+
+        jLabel19.setText("Partidas ganadas");
+
+        jLabel20.setText("Partidas perdidas");
+
+        jLabel21.setText("Partidas jugadas");
+
+        jLabel25.setText("Porcentaje victorias");
+
+        jLabel26.setText("Puntos anotados");
+
+        jLabel27.setText("Puntos encajados");
+
+        jLabelESTPVictorias.setText("-");
+
+        jLabelESTPAnotados.setText("-");
+
+        jLabelESTPEncajados.setText("-");
+
+        jLabelESTPJugadas.setText("-");
+
+        jLabelESTPGanadas.setText("-");
+
+        jLabelESTPPerdidas.setText("-");
+
+        jTextAreaEstUsuario.setEditable(false);
+        jTextAreaEstUsuario.setColumns(20);
+        jTextAreaEstUsuario.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextAreaEstUsuario.setRows(5);
+        jTextAreaEstUsuario.setFocusable(false);
+        jScrollPane4.setViewportView(jTextAreaEstUsuario);
+
+        jButtonEstVolver.setText("Volver");
+        jButtonEstVolver.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonEstVolverActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout EstadisticaUsuarioLayout = new javax.swing.GroupLayout(EstadisticaUsuario);
+        EstadisticaUsuario.setLayout(EstadisticaUsuarioLayout);
+        EstadisticaUsuarioLayout.setHorizontalGroup(
+            EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(EstadisticaUsuarioLayout.createSequentialGroup()
+                .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(EstadisticaUsuarioLayout.createSequentialGroup()
+                        .addGap(47, 47, 47)
+                        .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(EstadisticaUsuarioLayout.createSequentialGroup()
+                                .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel19)
+                                    .addComponent(jLabel21))
+                                .addGap(19, 19, 19)
+                                .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(jLabelESTPGanadas, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabelESTPJugadas)))
+                            .addGroup(EstadisticaUsuarioLayout.createSequentialGroup()
+                                .addComponent(jLabel20)
+                                .addGap(18, 18, 18)
+                                .addComponent(jLabelESTPPerdidas)))
+                        .addGap(126, 126, 126)
+                        .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel27)
+                            .addComponent(jLabel25)
+                            .addComponent(jLabel26))
+                        .addGap(18, 18, 18)
+                        .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabelESTPVictorias)
+                            .addComponent(jLabelESTPAnotados)
+                            .addComponent(jLabelESTPEncajados)))
+                    .addGroup(EstadisticaUsuarioLayout.createSequentialGroup()
+                        .addGap(33, 33, 33)
+                        .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jButtonEstVolver)
+                            .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 437, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(30, Short.MAX_VALUE))
+        );
+        EstadisticaUsuarioLayout.setVerticalGroup(
+            EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, EstadisticaUsuarioLayout.createSequentialGroup()
+                .addContainerGap(24, Short.MAX_VALUE)
+                .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel21)
+                    .addComponent(jLabel25)
+                    .addComponent(jLabelESTPVictorias)
+                    .addComponent(jLabelESTPJugadas))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel26)
+                    .addComponent(jLabelESTPAnotados)
+                    .addComponent(jLabel19)
+                    .addComponent(jLabelESTPGanadas))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel20)
+                        .addComponent(jLabelESTPPerdidas))
+                    .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel27)
+                        .addComponent(jLabelESTPEncajados)))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 331, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jButtonEstVolver)
+                .addGap(27, 27, 27))
+        );
+
+        getContentPane().add(EstadisticaUsuario, "card6");
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
@@ -856,7 +1101,7 @@ public class Pantalla extends javax.swing.JFrame {
             //}
             if(ulog1!=null){
                 showMessage("Bienvenido "+ulog1.getNombre());
-                setVentana(seleccionarModoDeJuego());
+                mostrarMenu();
                 /*Login.setVisible(false);
                 Entrenamiento.setVisible(true);*/
                 /*int opcion = seleccionarModoDeJuego();
@@ -911,13 +1156,10 @@ public class Pantalla extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButtonOKNUsuarioActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+    private void jButtonCargarDatosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCargarDatosActionPerformed
         // TODO add your handling code here:
-        jFileChooser1.setDialogTitle("Selecciona archivo");
-        jFileChooser1.setCurrentDirectory(new File(System.getProperty("user.dir")));
-        int result = jFileChooser1.showOpenDialog(Login);
-        
-    }//GEN-LAST:event_jButton3ActionPerformed
+        leerDatosDeDisco();
+    }//GEN-LAST:event_jButtonCargarDatosActionPerformed
 
     private void jButtonSetIntentosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSetIntentosActionPerformed
         // TODO add your handling code here:
@@ -1020,7 +1262,7 @@ public class Pantalla extends javax.swing.JFrame {
 
     private void jButtonETerminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonETerminarActionPerformed
         // TODO add your handling code here:
-        setVentana(seleccionarModoDeJuego());
+        mostrarMenu();
     }//GEN-LAST:event_jButtonETerminarActionPerformed
 
     private void jButtonPSetClaveSecretaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPSetClaveSecretaActionPerformed
@@ -1117,14 +1359,20 @@ public class Pantalla extends javax.swing.JFrame {
         jTextAreaPartidaInfo.append(stringBuilder.toString());
         jButtonPJugar.setEnabled(false);
         if(fin){
-            setVentana(seleccionarModoDeJuego());
+            partida.guardarPartida();
+            mostrarMenu();
         }
     }//GEN-LAST:event_jButtonPJugarActionPerformed
 
     private void jButtonTerminarPartidaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonTerminarPartidaActionPerformed
         // TODO add your handling code here:
-        setVentana(seleccionarModoDeJuego());
+        mostrarMenu();
     }//GEN-LAST:event_jButtonTerminarPartidaActionPerformed
+
+    private void jButtonEstVolverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEstVolverActionPerformed
+        // TODO add your handling code here:
+        mostrarMenu();
+    }//GEN-LAST:event_jButtonEstVolverActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1164,15 +1412,17 @@ public class Pantalla extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel Entrenamiento;
+    private javax.swing.JPanel EstadisticaUsuario;
     private javax.swing.JPanel Login;
     private javax.swing.JPanel NuevoUsuario;
     private javax.swing.JPanel Partida;
-    private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton5;
     private javax.swing.JButton jButtonAddCombinacion;
+    private javax.swing.JButton jButtonCargarDatos;
     private javax.swing.JButton jButtonEJugar;
     private javax.swing.JButton jButtonETerminar;
     private javax.swing.JButton jButtonEVerClaveSercreta;
+    private javax.swing.JButton jButtonEstVolver;
     private javax.swing.JButton jButtonLogin;
     private javax.swing.JButton jButtonNuevoUsuario;
     private javax.swing.JButton jButtonOKNUsuario;
@@ -1194,7 +1444,13 @@ public class Pantalla extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel18;
+    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel20;
+    private javax.swing.JLabel jLabel21;
+    private javax.swing.JLabel jLabel25;
+    private javax.swing.JLabel jLabel26;
+    private javax.swing.JLabel jLabel27;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -1204,6 +1460,12 @@ public class Pantalla extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel9;
     private javax.swing.JLabel jLabelEIntRealizados;
     private javax.swing.JLabel jLabelEIntRestantes;
+    private javax.swing.JLabel jLabelESTPAnotados;
+    private javax.swing.JLabel jLabelESTPEncajados;
+    private javax.swing.JLabel jLabelESTPGanadas;
+    private javax.swing.JLabel jLabelESTPJugadas;
+    private javax.swing.JLabel jLabelESTPPerdidas;
+    private javax.swing.JLabel jLabelESTPVictorias;
     private javax.swing.JLabel jLabelPIntGastados;
     private javax.swing.JLabel jLabelPNumeroRonda;
     private javax.swing.JLabel jLabelPTotRondas;
@@ -1216,7 +1478,9 @@ public class Pantalla extends javax.swing.JFrame {
     private javax.swing.JPasswordField jPasswordLoginDialog;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JTextArea jTextAreaEntrenamientoLog;
+    private javax.swing.JTextArea jTextAreaEstUsuario;
     private javax.swing.JTextArea jTextAreaPartidaInfo;
     private javax.swing.JTextField jTextFieldECombinacion;
     private javax.swing.JTextField jTextFieldENumIntentos;

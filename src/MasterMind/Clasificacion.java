@@ -46,10 +46,8 @@ public class Clasificacion {
     */
     public void addUsuario(Usuario usuario) throws UsuarioYaExisteException{
         if(usuarioExiste(usuario.getNombre())!=null){
-            System.out.println("ya existe");
             throw new UsuarioYaExisteException("Usuario ya existe");
         } else {
-            System.out.println("usuario nuevo "+usuario.getNombre());
             usuarios.add(usuario);
         }
     }

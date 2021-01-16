@@ -8,25 +8,22 @@ package MasterMind;
 import Excepciones.UsuarioNoExisteException;
 import Excepciones.UsuarioYaExisteException;
 import Excepciones.WrongPasswordException;
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  *
  * @author Yaros
  */
-public class Almacen_Login {
+public class Almacen_Login implements Serializable {
     private ArrayList<Usuario> usuarios = new ArrayList<>();
     
     private Usuario usuarioExiste(String nombre){
         Usuario usuario = new Usuario(nombre, "");
         if(this.usuarios.contains(usuario)){
-            System.out.println("hay usuario con ese nombre");
             int i = this.usuarios.indexOf(usuario);
-            System.out.println("Indice: "+i);
             usuario = this.usuarios.get(i);
-            System.out.println("Usuario despues de get: "+usuario.toString());
         } else {
-            System.out.println("no hay usuario");
             usuario=null;
         }
         
@@ -35,10 +32,9 @@ public class Almacen_Login {
     
     public Usuario registrar(Usuario usuario) throws UsuarioYaExisteException {
         if(usuarioExiste(usuario.getNombre())!=null){
-            throw new UsuarioYaExisteException();
+            throw new UsuarioYaExisteException("Usuario ya existe");
         } else {
             Usuario u = new Usuario(usuario);
-            System.out.println("Registra, usuario no existe");
             usuarios.add(u);
             return u;
         }
@@ -48,13 +44,12 @@ public class Almacen_Login {
         Usuario u = usuarioExiste(usuario.getNombre());
         if(u!=null){
             if(u.getClave() == null ? usuario.getClave() == null : u.getClave().equals(usuario.getClave())){
-                System.out.println("Usuario "+u.getNombre()+" identificado");
                 return u;
             } else {
-                throw new WrongPasswordException();
+                throw new WrongPasswordException("Clave incorrecta");
             }
         } else {
-            throw new UsuarioNoExisteException();
+            throw new UsuarioNoExisteException("Usuario no existe");
         }
     }
     

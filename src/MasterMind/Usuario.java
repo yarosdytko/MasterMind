@@ -72,6 +72,10 @@ public class Usuario implements Serializable, Comparable<Usuario>{
         return partidas_jugadas;
     }
 
+    public ArrayList<Partida> getPartidasJugadas() {
+        return partidasJugadas;
+    }
+
     public int getPartidas_ganadas() {
         return partidas_ganadas;
     }
@@ -97,12 +101,12 @@ public class Usuario implements Serializable, Comparable<Usuario>{
     }
     
     public void agregarVictoria(){
-        this.partidas_ganadas++;
+        //this.partidas_ganadas++;
         this.agregarPartida();
     }
     
     public void agregarDerrota(){
-        this.partidas_perdidas++;
+        //this.partidas_perdidas++;
         this.agregarPartida();
     }
     
@@ -115,6 +119,7 @@ public class Usuario implements Serializable, Comparable<Usuario>{
     }
     
     public void agregarPartida(Partida partida){
+        //this.partidas_jugadas++;
         this.partidasJugadas.add(partida);
     }
 

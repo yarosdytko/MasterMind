@@ -7,6 +7,7 @@ package MasterMind;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javafx.util.converter.LocalDateTimeStringConverter;
@@ -52,10 +53,6 @@ public class Partida {
     public void jugarRonda(Combinacion combinacion){
         this.getRonda().jugar(combinacion);
         if(this.getRonda().getIntentosRestantes()==0 || this.getRonda().esGanadora()){
-            if(this.getRondasRestantes()==0){
-                this.usuario1.agregarPartida(this);
-                this.usuario2.agregarPartida(this);
-            }
             finRonda = true;
             rondas_gastadas++; //si se acaba una ronda paso a la siguente
         } else {
@@ -67,7 +64,12 @@ public class Partida {
         return finRonda;
     }
     
-    
+    public void guardarPartida(){
+        this.usuario1.agregarPartida();
+        this.usuario2.agregarPartida();
+        this.usuario1.agregarPartida(this);
+        this.usuario2.agregarPartida(this);
+    }
     
     //devuelve la ultima ronda del array de rondas, que es a su vez la ronda acual
     public Ronda getRonda(){
@@ -143,6 +145,29 @@ public class Partida {
     public int getPuntos() {
         return puntos;
     }
+    
+    public String getFecha(){
+        return this.fecha.format(DateTimeFormatter.ISO_LOCAL_DATE);
+    }
+    
+    public String getHora(){
+        return this.fecha.format(DateTimeFormatter.ofPattern("HH:mm"));
+    }
 
-
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Partida { fecha=").append(this.getFecha());
+        sb.append(", hora=").append(this.getHora());
+        sb.append("\n numero_de_rondas=").append(numero_de_rondas);
+        sb.append(", rondas_gastadas=").append(rondas_gastadas); 
+        //sb.append(", puntos=").append(puntos);
+        sb.append("\n usuario1=").append(usuario1.getNombre());
+        sb.append(", usuario2=").append(usuario2.getNombre());
+        //sb.append(", rondas=").append(rondas.);
+        //sb.append(", finRonda=").append(finRonda);
+        sb.append('}');
+        return sb.toString();
+    }
+    
 }
