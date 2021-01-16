@@ -101,13 +101,15 @@ public class Usuario implements Serializable, Comparable<Usuario>{
     }
     
     public void agregarVictoria(){
-        //this.partidas_ganadas++;
+        this.partidas_ganadas++;
         this.agregarPartida();
+        this.actualizarPorcentaje_Victorias();
     }
     
     public void agregarDerrota(){
-        //this.partidas_perdidas++;
+        this.partidas_perdidas++;
         this.agregarPartida();
+        this.actualizarPorcentaje_Victorias();
     }
     
     public void agregarPuntos_anotados(int puntos){
@@ -127,11 +129,21 @@ public class Usuario implements Serializable, Comparable<Usuario>{
         this.partidas_ganadas = partidas_ganadas;
     }
     
+    public void actualizarPorcentaje_Victorias(){
+        this.porcentaje_victorias = (this.partidas_ganadas/this.partidas_jugadas)*100;
+    }
     
+    public Partida mostrarPartidas(int i){
+        return (this.partidasJugadas.get(i));
+    }
+    
+    public Ronda mostrarRondas(int i, int j){
+        return (this.partidasJugadas.get(i).getRonda(j));
+    }
 
     @Override
     public String toString() {
-        return "Usuario{" + "nombre=" + nombre + ", clave=" + clave + ", administrador=" + administrador + ", partidas_jugadas=" + partidas_jugadas + ", partidas_ganadas=" + partidas_ganadas + ", partidas_perdidas=" + partidas_perdidas + ", puntos_anotados=" + puntos_anotados + ", puntos_encajados=" + puntos_encajados + ", porcentaje_victorias=" + porcentaje_victorias + '}';
+        return "Usuario{" + "nombre=" + nombre + ", partidas_jugadas=" + partidas_jugadas + ", partidas_ganadas=" + partidas_ganadas + ", partidas_perdidas=" + partidas_perdidas + ", puntos_anotados=" + puntos_anotados + ", puntos_encajados=" + puntos_encajados + ", porcentaje_victorias=" + porcentaje_victorias + '}';
     }
 
     @Override
