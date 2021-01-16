@@ -6,7 +6,11 @@
 package MasterMind;
 
 import Excepciones.UsuarioYaExisteException;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -70,9 +74,23 @@ public class Clasificacion {
         }
        return stringBuilder.toString();
     }
+ 
+    public void ordenarPartidas_ganadas(){
+        Collections.sort(usuarios, new Comparator<Usuario>() {
+        @Override   
+            public int compare(Usuario o1, Usuario o2){
+                return o1.getPartidas_ganadas() < o2.getPartidas_ganadas()?1:-1;
+            }
+        });
+    }
     
-    public void volcar_a_txt(File fichero){
+    public void volcar_a_txt(File fichero) throws IOException{
+        PrintWriter escribir = new PrintWriter(new BufferedWriter(new FileWriter(fichero)));
         
+        for(int i = 0; i < usuarios.size(); i++){
+            escribir.println(usuarios.get(i).toString());
+        }
+        escribir.close();
     }
     
 }
