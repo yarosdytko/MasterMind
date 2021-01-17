@@ -1472,7 +1472,7 @@ public class Pantalla extends javax.swing.JFrame {
         jLabelPIntGastados.setText(Integer.toString(rondaActual.getIntentosGastados()));
         
         //uso este metodo para sacar un historico de intentos anteriores
-        jTextAreaPartidaInfo.append(partida.getHistoricoIntentos(indiceRondaActual)); 
+        jTextAreaPartidaInfo.append(partida.getPistas(indiceRondaActual));
 
         if(rondaActual.getIntentosRestantes()==0 || rondaActual.esGanadora()){
             if(rondaActual.esGanadora()){
