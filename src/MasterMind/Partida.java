@@ -91,7 +91,7 @@ public class Partida implements Serializable {
     }
     
     //esto lo uso en int grafica
-    public String getHistoricoIntentos(int numRonda){
+    /*public String getHistoricoIntentos(int numRonda){
         Ronda r = this.getRonda(numRonda);
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < r.getIntentosGastados(); i++) {
@@ -101,7 +101,19 @@ public class Partida implements Serializable {
             sb.append(" con ").append(r.getColocado(i)).append(" colocados\n");
         }
         return sb.toString();
+    }*/
+    
+    public String getPistas(int numRonda){
+        Ronda r = this.getRonda(numRonda);
+        StringBuilder sb = new StringBuilder();
+        sb.append(r.getIntentosGastados()).append(".- ");
+        sb.append(r.getIntento(r.getIntentosGastados()-1).toString());
+        sb.append(" ").append(r.getAciertos()).append(" aciertos");
+        sb.append(" con ").append(r.getColocados()).append(" colocados\n");
+        return sb.toString();
     }
+    
+    
     
     /*
     public void jugarPartida(Usuario usuario1, Usuario usuario2){
