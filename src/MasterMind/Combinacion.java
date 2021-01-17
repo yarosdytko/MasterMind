@@ -42,14 +42,19 @@ public class Combinacion implements Serializable{
     
     public int devolverAciertos(Combinacion c){
         int aciertos = 0;
-        int ultimo_acertado=-1;
+        //int ultimo_acertado=-1;
+        
+        int[] acertados = {-1,-1,-1,-1};
         
         for (int i = 0; i < clave.length; i++) {
             for (int j = 0; j < clave.length; j++) {
-                if(j!=ultimo_acertado && this.clave[i]==c.getClave()[j]){
-                    ultimo_acertado=j;
-                    aciertos++;
-                    break;
+                if(this.clave[i] == c.getClave()[j]){
+                    if(acertados[j] != 1){
+                        acertados[j] = 1;
+                        aciertos++;
+                        break;
+                    }
+                    
                 }
             }
         }
