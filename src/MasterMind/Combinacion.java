@@ -5,13 +5,14 @@
  */
 package MasterMind;
 
+import java.io.Serializable;
 import java.util.Random;
 
 /**
  *
  * @author Yaros
  */
-public class Combinacion {
+public class Combinacion implements Serializable{
     private final char [] COLORES = {'B','N','A','R','V','M'};
     private char [] clave = new char[4];
     

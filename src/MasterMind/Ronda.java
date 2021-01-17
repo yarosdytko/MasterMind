@@ -5,6 +5,7 @@
  */
 package MasterMind;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
@@ -12,7 +13,7 @@ import java.util.ArrayList;
  * @author Yaros
  */
 
-public class Ronda {
+public class Ronda implements Serializable {
 
     private int numero_de_intentos;
     private int intentos_gastados = 0;
@@ -73,13 +74,32 @@ public class Ronda {
         return this.numero_de_intentos;
     }
     
+    //devuelve los ultimos aciertos del array de los aciertos
     public int getAciertos(){
         return this.aciertos.get(intentos_gastados-1);
     }
     
+    //devuelve los ultimos colocados del array de colocados
     public int getColocados(){
         return this.colocados.get(intentos_gastados-1);
     }
+    
+    //devuelve un acierto dado del array de aciertos
+    public int getAcierto(int posicion){
+        return this.aciertos.get(posicion);
+    }
+    
+    //devuelve un colocado dado del array de colocados
+    public int getColocado(int posicion){
+        return this.colocados.get(posicion);
+    }
+    
+    //devuelve un intento dado del array de intentos
+    public Combinacion getIntento(int posicion){
+        return this.intentos.get(posicion);
+    }
+    
+
     
     //solo accesible para admin
     public String verClave(boolean entrenamiento, boolean admin){

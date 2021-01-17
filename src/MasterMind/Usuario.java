@@ -22,9 +22,7 @@ public class Usuario implements Serializable, Comparable<Usuario>{
     private int partidas_perdidas=0;
     private int puntos_anotados=0;
     private int puntos_encajados=0;
-    //private int porcentaje_victorias=(partidas_ganadas/partidas_perdidas)*100; no se puede poner esto tal cual, el programa peta
-    private int porcentaje_victorias=0;
-    //private Partida[] partidas = new Partida[partidas_jugadas]; mejor usar arrayList , mas facil de gestionar
+    private double porcentaje_victorias=0;
     private ArrayList<Partida> partidasJugadas;
 
     public Usuario(String nombre, String clave) {
@@ -92,7 +90,7 @@ public class Usuario implements Serializable, Comparable<Usuario>{
         return puntos_encajados;
     }
 
-    public int getPorcentaje_victorias() {
+    public double getPorcentaje_victorias() {
         return porcentaje_victorias;
     }
     
@@ -143,8 +141,19 @@ public class Usuario implements Serializable, Comparable<Usuario>{
 
     @Override
     public String toString() {
-        return "Usuario{" + "nombre=" + nombre + ", partidas_jugadas=" + partidas_jugadas + ", partidas_ganadas=" + partidas_ganadas + ", partidas_perdidas=" + partidas_perdidas + ", puntos_anotados=" + puntos_anotados + ", puntos_encajados=" + puntos_encajados + ", porcentaje_victorias=" + porcentaje_victorias + '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append(nombre).append(" | % victorias=");
+        sb.append(porcentaje_victorias).append(" | p.jugadas=");
+        sb.append(partidas_jugadas).append(" | p.ganadas=");
+        sb.append(partidas_ganadas).append(" | p.perdidas=");
+        sb.append(partidas_perdidas).append(" | ptos.anotados=");
+        sb.append(puntos_anotados).append(" | ptos.encajados=");
+        sb.append(puntos_encajados);
+        
+        return sb.toString();
     }
+    
+    
 
     @Override
     public boolean equals(Object obj) {

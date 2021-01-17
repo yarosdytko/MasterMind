@@ -5,21 +5,19 @@
  */
 package MasterMind;
 
-import java.time.LocalDate;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Iterator;
-import javafx.util.converter.LocalDateTimeStringConverter;
 
 /**
  *
  * @author Yaros
  */
-public class Partida {
+public class Partida implements Serializable {
     private LocalDateTime fecha;
-    private int numero_de_rondas;
-    private int rondas_gastadas;
+    private int numero_de_rondas=6;
+    private int rondas_gastadas=0;
     private int puntos = 10;
     private Usuario usuario1;
     private Usuario usuario2;
@@ -29,8 +27,6 @@ public class Partida {
     public Partida(Usuario usuario1, Usuario usuario2) {    //Partida normal
         this.usuario1 = usuario1;
         this.usuario2 = usuario2;
-        this.numero_de_rondas=3;
-        this.rondas_gastadas=0;
         this.fecha= LocalDateTime.now();
     }
     
@@ -60,7 +56,21 @@ public class Partida {
         }
     }
     
-    public boolean finRonda(){
+    //este metodo es casi igual que el de arriba pero permite ir alterando rondas de usuarios
+    public void jugarRonda(int numero_ronda,Combinacion combinacion){
+        Ronda r = this.getRonda(numero_ronda); //obtengo la ronda correspondiente del array de rondas
+        //comprobacion de datos de ronda
+        r.jugar(combinacion);
+        //si ya no quedan intentos en ronda o la ronda es ganadora
+        if(r.getIntentosRestantes()==0 || r.esGanadora()) {
+            finRonda=true; //ronda finalizada
+            rondas_gastadas++;
+        } else {
+            finRonda=false;
+        }
+    }
+    
+    public boolean getFinRonda(){
         return finRonda;
     }
     
@@ -78,6 +88,19 @@ public class Partida {
     
     public Ronda getRonda(int i){
         return this.rondas.get(i);
+    }
+    
+    //esto lo uso en int grafica
+    public String getHistoricoIntentos(int numRonda){
+        Ronda r = this.getRonda(numRonda);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < r.getIntentosGastados(); i++) {
+            sb.append(i+1).append(".- ");
+            sb.append(r.getIntento(i).toString());
+            sb.append(" ").append(r.getAcierto(i)).append(" aciertos");
+            sb.append(" con ").append(r.getColocado(i)).append(" colocados\n");
+        }
+        return sb.toString();
     }
     
     /*
@@ -99,13 +122,13 @@ public class Partida {
         this.rondas[0].jugar(rondas[0].getClave());
     }
     */
-    /*
+    
     public void asignarEstadísticas(){
         int puntosUsuario1 = 0;
         int puntosUsuario2 = 0;
         
         //Cálculo de los puntos totales de cada jugador
-        for(int i = 0; i < numero_de_rondas; i++){
+        for(int i = 0; i < this.rondas.size(); i++){
             if((i%2) == 0){
                puntosUsuario1 += this.rondas.get(i).getPuntos();
             }else if((i%2) != 0){
@@ -136,7 +159,6 @@ public class Partida {
         usuario1.agregarPartida(this);
         usuario2.agregarPartida(this);
     }
-    */
     
 
     public int getNumero_de_rondas() {
@@ -168,9 +190,9 @@ public class Partida {
         sb.append(", rondas_gastadas=").append(rondas_gastadas); 
         sb.append(", puntos=").append(puntos);
         sb.append("\n usuario1=").append(usuario1.getNombre());
-        sb.append(", usuario2=").append(usuario2.getNombre());
+        sb.append(", usuario2=").append(usuario2.getNombre()).append("\n");
         for(int i = 0; i < rondas.size(); i++){
-            sb.append("Ronda "+(i-1)+"=> Clave: "+rondas.get(i).getClave()+", Total de intentos: "+rondas.get(i).getIntentosGastados()+"\n");
+            sb.append("Ronda ").append(i+1).append("=> Clave: ").append(rondas.get(i).getClave()).append(", Total de intentos: ").append(rondas.get(i).getIntentosGastados()).append("\n");
         }
         //sb.append(", rondas=").append(rondas);
         //sb.append(", finRonda=").append(finRonda);

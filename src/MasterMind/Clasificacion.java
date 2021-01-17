@@ -11,16 +11,16 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 
 /**
  *
  * @author Yaros
  */
-public class Clasificacion {
+public class Clasificacion implements Serializable{
     private ArrayList<Usuario> usuarios;
     
     
@@ -57,15 +57,25 @@ public class Clasificacion {
     }
     
     public void actualizarUsuario(Usuario usuario){
-        //por hacer
+        
+        Usuario u = new Usuario(usuario.getNombre(), "");
+        
+        if(this.usuarios.contains(u)){
+            int i = this.usuarios.indexOf(u);
+            u=this.usuarios.get(i);
+            u=usuario;
+        }
     }
     
     public void ordenar(){
         Collections.sort(usuarios);
     }
     
+    //muestra la clasificacion odenada por porcentaje de victorias
     public String mostrarClasificacion(){
        
+        this.ordenarPorPorcentaje_de_victorias();
+        
        StringBuilder stringBuilder = new StringBuilder();
        
         for (Usuario u : usuarios) {
@@ -74,8 +84,39 @@ public class Clasificacion {
         }
        return stringBuilder.toString();
     }
+    
+    //este metodo lo uso para la clasificacion de la int grafica
+    public ArrayList<Usuario> getClasificacion(){
+        this.ordenarPorPorcentaje_de_victorias();
+        return this.usuarios;
+    }
+    
+    public String mostrarClasificacionPorPartidasGanadas(){
+        
+        //ordeno la lista
+        this.ordenarPorPartidas_ganadas();
+       
+       StringBuilder stringBuilder = new StringBuilder();
+       //stringBuilder.append("Nombre, Porcentaje victorias, Partidas jugadas, Partidas ganadas, Partidas perdidas, Puntos anotados, Puntos encajados");
+        for (Usuario u : usuarios) {
+            stringBuilder.append(u.toString());
+            stringBuilder.append("\n");
+        }
+       return stringBuilder.toString();
+    }
+    
  
-    public void ordenarPartidas_ganadas(){
+    
+    private void ordenarPorPorcentaje_de_victorias(){
+        Collections.sort(usuarios, new Comparator<Usuario>(){
+            @Override
+            public int compare(Usuario o1, Usuario o2){
+                return o1.getPorcentaje_victorias() < o2.getPorcentaje_victorias()?1:-1;
+            }
+        });
+    }
+    
+    private void ordenarPorPartidas_ganadas(){
         Collections.sort(usuarios, new Comparator<Usuario>() {
         @Override   
             public int compare(Usuario o1, Usuario o2){

@@ -12,13 +12,12 @@ import MasterMind.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.JTable;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  *
@@ -27,7 +26,7 @@ import javax.swing.JTable;
 public class Pantalla extends javax.swing.JFrame {
     
     private Almacen_Login almacen = new Almacen_Login();
-    //private Clasificacion clasificacion = new Clasificacion();
+    private Clasificacion clasificacion = new Clasificacion();
     private Usuario ulog1 = null;
     private Usuario ulog2 = null;
     
@@ -44,7 +43,6 @@ public class Pantalla extends javax.swing.JFrame {
     private boolean entrenamientoStop = false;
     private boolean intentosOK=false;
     private boolean comboOK=false;
-    private boolean modoInfinito = false;
     private Ronda rondaEntrenamiento = null;
     private Combinacion combinacionEntrenamiento = null;
     
@@ -53,6 +51,11 @@ public class Pantalla extends javax.swing.JFrame {
     private Partida partida = null;
     private Combinacion combinacionSecreta = null;
     private Combinacion combinacionIntento = null;
+    private Usuario u1Ronda=null;
+    private Usuario u2Ronda=null;
+    private int indiceRondaActual=0;
+    
+    private boolean partidaSelected=false;
     
     /**
      * Creates new form Pantalla
@@ -60,7 +63,8 @@ public class Pantalla extends javax.swing.JFrame {
     public Pantalla() {
         
         //añado un usuario para pruebas
-        /*try {
+        /*
+        try {
             almacen.registrar(new Usuario("u1", "123",true));
             almacen.registrar(new Usuario("u2", "123",true));
         } catch (UsuarioYaExisteException ex) {
@@ -80,6 +84,25 @@ public class Pantalla extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(rootPane, s);
     }
     
+    //intercambia el turno entre usuarios loguedados
+    private void cambioDeTurno(int indiceDeRonda){
+        if(indiceDeRonda%2==0){ //rondas pares
+            u1Ronda=ulog1;
+            u2Ronda=ulog2;
+            
+        } else {  //rondas impares
+            u1Ronda=ulog2;
+            u2Ronda=ulog1;
+        }
+        jLabelPUsuario1.setText("");
+        jLabelPUsuario2.setText("");
+        jLabelPUsuario1.setText(u1Ronda.getNombre());
+        jLabelPUsuario2.setText(u2Ronda.getNombre());
+        //jTextAreaPartidaInfo.append(partida.getHistoricoIntentos(indiceDeRonda-i));
+        showMessage("Cambio de turno "+u1Ronda.getNombre()+" VS "+u2Ronda.getNombre());
+        
+    }
+    
     private void showMessageCombinacionNoValida(){
         showMessage("Combinacion no valida\nColores: B - blanco, "
                     + "N - negro, A - azul, R - rojo, V - verde, M - marron");
@@ -88,7 +111,7 @@ public class Pantalla extends javax.swing.JFrame {
     private int seleccionarModoDeJuego(){
         int i= -1;
         
-        Object[] options={"Entrenamiento","Partida","Estadistica","\nClasificaion","Guardar","Salir"};
+        Object[] options={"Entrenamiento","Partida","Estadistica","Clasificaion","Guardar","Salir"};
         
         do{
             i = JOptionPane.showOptionDialog(this, "Selecciona modo de juego", 
@@ -102,25 +125,26 @@ public class Pantalla extends javax.swing.JFrame {
         return i;
     }
     
-    /*NO TERMINADO AUN*/
     private void verEstadistica(Usuario usuario){
         jTextAreaEstUsuario.setText(""); // se limpia el area de texto
         jLabelESTPJugadas.setText(Integer.toString(usuario.getPartidas_jugadas()));
         jLabelESTPGanadas.setText(Integer.toString(usuario.getPartidas_ganadas()));
         jLabelESTPPerdidas.setText(Integer.toString(usuario.getPartidas_perdidas()));
-        jLabelESTPVictorias.setText(Integer.toString(usuario.getPorcentaje_victorias()));
+        jLabelESTPVictorias.setText(Double.toString(usuario.getPorcentaje_victorias()));
         jLabelESTPAnotados.setText(Integer.toString(usuario.getPuntos_anotados()));
         jLabelESTPEncajados.setText(Integer.toString(usuario.getPuntos_encajados()));
         //
         StringBuilder sb = new StringBuilder();
         if(usuario.getPartidas_jugadas()>0){
             ArrayList<Partida> partidasUsuario = usuario.getPartidasJugadas();
-            
+            jComboBoxPartidas.setEnabled(true);
             for (int i = 0; i < partidasUsuario.size(); i++) {
-                sb.append(i+1+" "+partidasUsuario.get(i).toString()+"\n");
+                sb.append(i+1).append(" ").append(partidasUsuario.get(i).toString()).append("\n");
+                jComboBoxPartidas.addItem("Partida "+(i+1));
             }
         } else {
-            sb.append("El usuario "+usuario.getNombre()+" no ha jugado partidas");
+            jComboBoxPartidas.setEnabled(false);
+            sb.append("El usuario ").append(usuario.getNombre()).append(" no ha jugado partidas");
         }
         jTextAreaEstUsuario.setText(sb.toString());
 
@@ -130,6 +154,8 @@ public class Pantalla extends javax.swing.JFrame {
         jFileChooser1.setDialogTitle("Guardar archivo");
         jFileChooser1.setCurrentDirectory(new File(System.getProperty("user.dir")));
         jFileChooser1.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("*.ser", "ser", "serial");
+        jFileChooser1.setFileFilter(filter);
         int result = jFileChooser1.showSaveDialog(rootPane);
         if(result==JFileChooser.APPROVE_OPTION){
             //escribir datos
@@ -143,6 +169,7 @@ public class Pantalla extends javax.swing.JFrame {
             
             try {
                 salidaDatos.write(almacen);
+                salidaDatos.write(clasificacion);
             } catch (IOException ex) {
                 Logger.getLogger(Pantalla.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -162,6 +189,8 @@ public class Pantalla extends javax.swing.JFrame {
         jFileChooser1.setFileSelectionMode(JFileChooser.FILES_ONLY);
         jFileChooser1.setDialogTitle("Selecciona archivo");
         jFileChooser1.setCurrentDirectory(new File(System.getProperty("user.dir")));
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("*.ser", "ser", "serial");
+        jFileChooser1.setFileFilter(filter);
         int result = jFileChooser1.showOpenDialog(rootPane);
         if(result==JFileChooser.APPROVE_OPTION){
             String nombreArchivo = jFileChooser1.getSelectedFile().getName();
@@ -174,6 +203,7 @@ public class Pantalla extends javax.swing.JFrame {
             }
             try {
                 almacen = (Almacen_Login)entradaDatos.read();
+                clasificacion = (Clasificacion)entradaDatos.read();
             } catch (IOException | ClassNotFoundException ex) {
                 Logger.getLogger(Pantalla.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -189,6 +219,20 @@ public class Pantalla extends javax.swing.JFrame {
                 showMessage("No ha sido posible cargar datos");
             }
         }
+    }
+    
+    private void mostrarClasificacion(){
+        
+        if(ulog1.getAdministrador()){
+            jButtonGuardarClasificacion.setEnabled(true);
+        } else {
+            jButtonGuardarClasificacion.setEnabled(false);
+        }
+        jTextAreaClasificacion.setText("");
+        jTextAreaClasificacion.setText(clasificacion.mostrarClasificacion());
+
+        JOptionPane.showConfirmDialog(this, jPanelClasificacion, "Clasificacion",JOptionPane.OK_OPTION,JOptionPane.PLAIN_MESSAGE);
+        mostrarMenu();
     }
     
     private void mostrarMenu(){
@@ -211,8 +255,9 @@ public class Pantalla extends javax.swing.JFrame {
                 Partida.setVisible(true);
                 showLoginDialog();
                 break;
-                /*aqui ira un case mas*/
-                
+            case CLASIFICACION:
+                mostrarClasificacion();
+                break;
             case GUARDAR:
                 guardarDatosEnDisco();
                 break;
@@ -239,20 +284,7 @@ public class Pantalla extends javax.swing.JFrame {
         if(i==JOptionPane.YES_OPTION){
             entrenamientoReset();
         } else {
-            int opcion = seleccionarModoDeJuego();
-            switch(opcion){
-                case ENTRENAMIENTO:
-                    entrenamientoReset();
-                    break;
-                case PARTIDA:
-                    entrenamientoReset();
-                    Entrenamiento.setVisible(false);
-                    Partida.setVisible(true);
-                    break;
-                case SALIR:
-                    System.exit(0);
-                    break;
-            }
+            mostrarMenu();
         }
     }
     
@@ -279,14 +311,16 @@ public class Pantalla extends javax.swing.JFrame {
             partida = null;
             combinacionSecreta = null;
             combinacionIntento = null;
-            ulog2=null;
+            u1Ronda=ulog1;
+            u2Ronda=null;
+            indiceRondaActual=0;                   
             jLabelPTotalIntentos.setText("-");
             jLabelPIntGastados.setText("-");
             jLabelPNumeroRonda.setText("-");
             jLabelPTotRondas.setText("-");
             jButtonPJugar.setEnabled(false);
             jButtonPAddIntento.setEnabled(false);
-            jButtonPSetClaveSecreta.setEnabled(true);
+            jButtonPAddClaveSecreta.setEnabled(true);
             
     }
     
@@ -312,7 +346,7 @@ public class Pantalla extends javax.swing.JFrame {
             
             if(i==JOptionPane.OK_OPTION){
                 String nombre = jTextFieldLoginDialog.getText().trim();
-                String clave = new String(jPasswordLoginDialog.getPassword());
+                String clave = String.valueOf(jPasswordLoginDialog.getPassword());
                 if(nombre.isEmpty() || clave.isEmpty() || "".equals(nombre) || "".equals(clave)){
                     showMessage("No se permiten campos vacios");
                     i=-1;
@@ -322,15 +356,14 @@ public class Pantalla extends javax.swing.JFrame {
                     nombre="";
                     clave="";
                     if(ulog2!=null){
-                        showMessage("Bienvenido "+ulog2.getNombre());
-                        
-                        jLabelPUsuario1.setText(ulog1.getNombre());
-                        jLabelPUsuario2.setText(ulog2.getNombre());
-                        Partida p = new Partida(ulog1, ulog2); //se crea nueva partida con dos usuarios
+                        u2Ronda=ulog2;
+                        showMessage("Bienvenido "+u2Ronda.getNombre());    
+                        jLabelPUsuario1.setText(u1Ronda.getNombre());
+                        jLabelPUsuario2.setText(u2Ronda.getNombre());
+                        Partida p = new Partida(u1Ronda, u2Ronda); //se crea nueva partida con dos usuarios
                         partida=p;
                         jLabelPTotRondas.setText(Integer.toString(partida.getNumero_de_rondas()));
                         jLabelPNumeroRonda.setText(Integer.toString(partida.getRondas_gastadas()));
-                        
                     } else {
                         jTextFieldLoginDialog.setText("");
                         jPasswordLoginDialog.setText("");
@@ -346,6 +379,41 @@ public class Pantalla extends javax.swing.JFrame {
         } while(i==-1);
         
         
+    }
+    
+    private String addClaveSecreta(){
+        int op = -1;
+        String cl="";
+        do{
+            jPasswordPClaveSecreta.setText("");
+            op = JOptionPane.showConfirmDialog(this, jPanelSetClaveSecreta, "Clave secreta", JOptionPane.OK_CANCEL_OPTION);
+            if(op==JOptionPane.OK_OPTION){
+                cl = String.valueOf(jPasswordPClaveSecreta.getPassword());
+                System.out.println("Secreto: "+cl);
+                if(cl.isEmpty() || "".equals(cl)){
+                    showMessage("No se permiten campos vacios");
+                    op=-1;
+                }
+            }
+        } while (op!=JOptionPane.OK_OPTION);
+        return cl;
+    }
+    
+    private String addIntento(){
+        int op = -1;
+        String cl="";
+        do{
+            jTextFieldPIntento.setText("");
+            op = JOptionPane.showConfirmDialog(this, jPanelSetIntento, "Clave intento", JOptionPane.OK_OPTION);
+            if(op==JOptionPane.OK_OPTION){
+                cl = jTextFieldPIntento.getText().trim();
+                if(cl.isEmpty() || "".equals(cl)){
+                    showMessage("No se permiten campos vacios");
+                    op=-1;
+                }
+            }
+        } while (op!=JOptionPane.OK_OPTION);
+        return cl;
     }
 
     /**
@@ -366,7 +434,16 @@ public class Pantalla extends javax.swing.JFrame {
         jTextFieldLoginDialog = new javax.swing.JTextField();
         jPanelSetClaveSecreta = new javax.swing.JPanel();
         jLabel18 = new javax.swing.JLabel();
-        jTextFieldPClaveSecreta = new javax.swing.JTextField();
+        jPasswordPClaveSecreta = new javax.swing.JPasswordField();
+        jPanelSetIntento = new javax.swing.JPanel();
+        jLabel22 = new javax.swing.JLabel();
+        jTextFieldPIntento = new javax.swing.JTextField();
+        jPanelClasificacion = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jTextAreaClasificacion = new javax.swing.JTextArea();
+        jButtonFporPVictorias = new javax.swing.JButton();
+        jButtonFporPGanadas = new javax.swing.JButton();
+        jButtonGuardarClasificacion = new javax.swing.JButton();
         Login = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -384,6 +461,7 @@ public class Pantalla extends javax.swing.JFrame {
         jTextFieldPasswordNUsuario = new javax.swing.JTextField();
         jButtonOKNUsuario = new javax.swing.JButton();
         jButtonVolverNUsuario = new javax.swing.JButton();
+        jCheckBoxAdmin = new javax.swing.JCheckBox();
         Entrenamiento = new javax.swing.JPanel();
         jLabel8 = new javax.swing.JLabel();
         jTextFieldENumIntentos = new javax.swing.JTextField();
@@ -401,7 +479,7 @@ public class Pantalla extends javax.swing.JFrame {
         jButtonEVerClaveSercreta = new javax.swing.JButton();
         jButtonETerminar = new javax.swing.JButton();
         Partida = new javax.swing.JPanel();
-        jButtonPSetClaveSecreta = new javax.swing.JButton();
+        jButtonPAddClaveSecreta = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTextAreaPartidaInfo = new javax.swing.JTextArea();
         jLabel7 = new javax.swing.JLabel();
@@ -412,14 +490,12 @@ public class Pantalla extends javax.swing.JFrame {
         jLabelPNumeroRonda = new javax.swing.JLabel();
         jLabel15 = new javax.swing.JLabel();
         jLabelPTotRondas = new javax.swing.JLabel();
-        jLabel17 = new javax.swing.JLabel();
-        jTextFieldPIntento = new javax.swing.JTextField();
         jButtonPAddIntento = new javax.swing.JButton();
         jButtonPJugar = new javax.swing.JButton();
         jButtonTerminarPartida = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
         jLabelPUsuario1 = new javax.swing.JLabel();
         jLabelPUsuario2 = new javax.swing.JLabel();
+        jLabel17 = new javax.swing.JLabel();
         EstadisticaUsuario = new javax.swing.JPanel();
         jLabel19 = new javax.swing.JLabel();
         jLabel20 = new javax.swing.JLabel();
@@ -436,6 +512,8 @@ public class Pantalla extends javax.swing.JFrame {
         jScrollPane4 = new javax.swing.JScrollPane();
         jTextAreaEstUsuario = new javax.swing.JTextArea();
         jButtonEstVolver = new javax.swing.JButton();
+        jComboBoxPartidas = new javax.swing.JComboBox<>();
+        jButtonVerPartida = new javax.swing.JButton();
 
         jDialog1.setModal(true);
 
@@ -497,7 +575,7 @@ public class Pantalla extends javax.swing.JFrame {
                 .addGap(33, 33, 33)
                 .addComponent(jLabel18)
                 .addGap(18, 18, 18)
-                .addComponent(jTextFieldPClaveSecreta, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jPasswordPClaveSecreta, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(36, Short.MAX_VALUE))
         );
         jPanelSetClaveSecretaLayout.setVerticalGroup(
@@ -506,8 +584,91 @@ public class Pantalla extends javax.swing.JFrame {
                 .addGap(35, 35, 35)
                 .addGroup(jPanelSetClaveSecretaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel18)
-                    .addComponent(jTextFieldPClaveSecreta, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jPasswordPClaveSecreta, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(41, Short.MAX_VALUE))
+        );
+
+        jLabel22.setText("Clave Intento");
+
+        javax.swing.GroupLayout jPanelSetIntentoLayout = new javax.swing.GroupLayout(jPanelSetIntento);
+        jPanelSetIntento.setLayout(jPanelSetIntentoLayout);
+        jPanelSetIntentoLayout.setHorizontalGroup(
+            jPanelSetIntentoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelSetIntentoLayout.createSequentialGroup()
+                .addGap(33, 33, 33)
+                .addComponent(jLabel22)
+                .addGap(18, 18, 18)
+                .addComponent(jTextFieldPIntento, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(35, Short.MAX_VALUE))
+        );
+        jPanelSetIntentoLayout.setVerticalGroup(
+            jPanelSetIntentoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelSetIntentoLayout.createSequentialGroup()
+                .addGap(35, 35, 35)
+                .addGroup(jPanelSetIntentoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel22)
+                    .addComponent(jTextFieldPIntento, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(41, Short.MAX_VALUE))
+        );
+
+        jPanelClasificacion.setName("Clasificacion"); // NOI18N
+        jPanelClasificacion.setPreferredSize(new java.awt.Dimension(750, 500));
+
+        jTextAreaClasificacion.setEditable(false);
+        jTextAreaClasificacion.setColumns(20);
+        jTextAreaClasificacion.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jTextAreaClasificacion.setRows(5);
+        jScrollPane3.setViewportView(jTextAreaClasificacion);
+
+        jButtonFporPVictorias.setText("Filtrar por porcetaje de victorias");
+        jButtonFporPVictorias.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonFporPVictoriasActionPerformed(evt);
+            }
+        });
+
+        jButtonFporPGanadas.setText("Filtrar por partidas ganadas");
+        jButtonFporPGanadas.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonFporPGanadasActionPerformed(evt);
+            }
+        });
+
+        jButtonGuardarClasificacion.setText("Guardar en archivo");
+        jButtonGuardarClasificacion.setEnabled(false);
+        jButtonGuardarClasificacion.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonGuardarClasificacionActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanelClasificacionLayout = new javax.swing.GroupLayout(jPanelClasificacion);
+        jPanelClasificacion.setLayout(jPanelClasificacionLayout);
+        jPanelClasificacionLayout.setHorizontalGroup(
+            jPanelClasificacionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelClasificacionLayout.createSequentialGroup()
+                .addGap(33, 33, 33)
+                .addGroup(jPanelClasificacionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 688, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanelClasificacionLayout.createSequentialGroup()
+                        .addComponent(jButtonFporPVictorias)
+                        .addGap(35, 35, 35)
+                        .addComponent(jButtonFporPGanadas)
+                        .addGap(36, 36, 36)
+                        .addComponent(jButtonGuardarClasificacion)))
+                .addContainerGap(29, Short.MAX_VALUE))
+        );
+        jPanelClasificacionLayout.setVerticalGroup(
+            jPanelClasificacionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelClasificacionLayout.createSequentialGroup()
+                .addGap(21, 21, 21)
+                .addGroup(jPanelClasificacionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButtonFporPVictorias)
+                    .addComponent(jButtonFporPGanadas)
+                    .addComponent(jButtonGuardarClasificacion))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(39, Short.MAX_VALUE))
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -623,6 +784,8 @@ public class Pantalla extends javax.swing.JFrame {
             }
         });
 
+        jCheckBoxAdmin.setText("Administrador");
+
         javax.swing.GroupLayout NuevoUsuarioLayout = new javax.swing.GroupLayout(NuevoUsuario);
         NuevoUsuario.setLayout(NuevoUsuarioLayout);
         NuevoUsuarioLayout.setHorizontalGroup(
@@ -645,6 +808,7 @@ public class Pantalla extends javax.swing.JFrame {
                                     .addComponent(jLabel4))
                                 .addGap(87, 87, 87)
                                 .addGroup(NuevoUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jCheckBoxAdmin)
                                     .addComponent(jTextFieldNombreNUsuario)
                                     .addComponent(jTextFieldPasswordNUsuario, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE))))))
                 .addGap(103, 103, 103))
@@ -662,7 +826,9 @@ public class Pantalla extends javax.swing.JFrame {
                 .addGroup(NuevoUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
                     .addComponent(jTextFieldPasswordNUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(53, 53, 53)
+                .addGap(18, 18, 18)
+                .addComponent(jCheckBoxAdmin)
+                .addGap(15, 15, 15)
                 .addGroup(NuevoUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonOKNUsuario)
                     .addComponent(jButtonVolverNUsuario))
@@ -805,10 +971,10 @@ public class Pantalla extends javax.swing.JFrame {
         Partida.setToolTipText("");
         Partida.setPreferredSize(new java.awt.Dimension(500, 500));
 
-        jButtonPSetClaveSecreta.setText("Set Clave Secreta");
-        jButtonPSetClaveSecreta.addActionListener(new java.awt.event.ActionListener() {
+        jButtonPAddClaveSecreta.setText("Añadir Clave Secreta");
+        jButtonPAddClaveSecreta.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonPSetClaveSecretaActionPerformed(evt);
+                jButtonPAddClaveSecretaActionPerformed(evt);
             }
         });
 
@@ -835,9 +1001,7 @@ public class Pantalla extends javax.swing.JFrame {
 
         jLabelPTotRondas.setText("-");
 
-        jLabel17.setText("Intento");
-
-        jButtonPAddIntento.setText("Añadir");
+        jButtonPAddIntento.setText("Añadir Intento");
         jButtonPAddIntento.setEnabled(false);
         jButtonPAddIntento.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -860,8 +1024,6 @@ public class Pantalla extends javax.swing.JFrame {
             }
         });
 
-        jButton5.setText("Ver estadisticas");
-
         jLabelPUsuario1.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelPUsuario1.setText(" ");
         jLabelPUsuario1.setToolTipText("");
@@ -869,53 +1031,53 @@ public class Pantalla extends javax.swing.JFrame {
         jLabelPUsuario2.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabelPUsuario2.setText(" ");
 
+        jLabel17.setText("Colores: B - blanco, N - negro, A - azul, R - rojo, V - verde, M - marron");
+
         javax.swing.GroupLayout PartidaLayout = new javax.swing.GroupLayout(Partida);
         Partida.setLayout(PartidaLayout);
         PartidaLayout.setHorizontalGroup(
             PartidaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PartidaLayout.createSequentialGroup()
-                .addGap(30, 30, 30)
-                .addGroup(PartidaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(PartidaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(PartidaLayout.createSequentialGroup()
-                        .addComponent(jLabelPUsuario1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabelPUsuario2))
-                    .addGroup(PartidaLayout.createSequentialGroup()
-                        .addComponent(jButtonTerminarPartida)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton5))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, PartidaLayout.createSequentialGroup()
-                        .addGroup(PartidaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(PartidaLayout.createSequentialGroup()
-                                .addComponent(jLabel16)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabelPNumeroRonda))
-                            .addGroup(PartidaLayout.createSequentialGroup()
-                                .addComponent(jLabel15)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabelPTotRondas)))
-                        .addGap(24, 24, 24)
+                        .addGap(30, 30, 30)
                         .addGroup(PartidaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(PartidaLayout.createSequentialGroup()
-                                .addGap(6, 6, 6)
-                                .addComponent(jLabel7)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabelPTotalIntentos))
-                            .addGroup(PartidaLayout.createSequentialGroup()
-                                .addComponent(jLabel14)
+                                .addComponent(jLabelPUsuario1)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jLabelPIntGastados)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButtonPJugar))
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 438, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLabelPUsuario2))
+                            .addComponent(jButtonTerminarPartida)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, PartidaLayout.createSequentialGroup()
+                                .addGroup(PartidaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addGroup(PartidaLayout.createSequentialGroup()
+                                        .addComponent(jLabel15)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(jLabelPTotRondas))
+                                    .addGroup(PartidaLayout.createSequentialGroup()
+                                        .addComponent(jLabel16)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(jLabelPNumeroRonda)))
+                                .addGap(24, 24, 24)
+                                .addGroup(PartidaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addGroup(PartidaLayout.createSequentialGroup()
+                                        .addGap(6, 6, 6)
+                                        .addComponent(jLabel7)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(jLabelPTotalIntentos))
+                                    .addGroup(PartidaLayout.createSequentialGroup()
+                                        .addComponent(jLabel14)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(jLabelPIntGastados)))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jButtonPJugar))
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 438, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(PartidaLayout.createSequentialGroup()
+                                .addComponent(jButtonPAddClaveSecreta)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jButtonPAddIntento))))
                     .addGroup(PartidaLayout.createSequentialGroup()
-                        .addComponent(jButtonPSetClaveSecreta)
-                        .addGap(106, 106, 106)
-                        .addComponent(jLabel17)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jTextFieldPIntento, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButtonPAddIntento)))
+                        .addGap(64, 64, 64)
+                        .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 370, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(32, Short.MAX_VALUE))
         );
         PartidaLayout.setVerticalGroup(
@@ -927,12 +1089,11 @@ public class Pantalla extends javax.swing.JFrame {
                     .addComponent(jLabelPUsuario2))
                 .addGap(30, 30, 30)
                 .addGroup(PartidaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jButtonPSetClaveSecreta)
-                    .addGroup(PartidaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel17)
-                        .addComponent(jTextFieldPIntento, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jButtonPAddIntento)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 96, Short.MAX_VALUE)
+                    .addComponent(jButtonPAddClaveSecreta)
+                    .addComponent(jButtonPAddIntento))
+                .addGap(39, 39, 39)
+                .addComponent(jLabel17)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
                 .addGroup(PartidaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel14)
                     .addComponent(jLabelPIntGastados)
@@ -948,9 +1109,7 @@ public class Pantalla extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(PartidaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButtonTerminarPartida)
-                    .addComponent(jButton5))
+                .addComponent(jButtonTerminarPartida)
                 .addGap(10, 10, 10))
         );
 
@@ -996,53 +1155,75 @@ public class Pantalla extends javax.swing.JFrame {
             }
         });
 
+        jComboBoxPartidas.setEnabled(false);
+        jComboBoxPartidas.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxPartidasActionPerformed(evt);
+            }
+        });
+
+        jButtonVerPartida.setText("Ver partida");
+        jButtonVerPartida.setEnabled(false);
+        jButtonVerPartida.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonVerPartidaActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout EstadisticaUsuarioLayout = new javax.swing.GroupLayout(EstadisticaUsuario);
         EstadisticaUsuario.setLayout(EstadisticaUsuarioLayout);
         EstadisticaUsuarioLayout.setHorizontalGroup(
             EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(EstadisticaUsuarioLayout.createSequentialGroup()
+                .addGap(33, 33, 33)
                 .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(EstadisticaUsuarioLayout.createSequentialGroup()
-                        .addGap(47, 47, 47)
-                        .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(EstadisticaUsuarioLayout.createSequentialGroup()
-                                .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel19)
-                                    .addComponent(jLabel21))
-                                .addGap(19, 19, 19)
-                                .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(jLabelESTPGanadas, javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabelESTPJugadas)))
-                            .addGroup(EstadisticaUsuarioLayout.createSequentialGroup()
-                                .addComponent(jLabel20)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabelESTPPerdidas)))
-                        .addGap(126, 126, 126)
-                        .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel27)
-                            .addComponent(jLabel25)
-                            .addComponent(jLabel26))
-                        .addGap(18, 18, 18)
-                        .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabelESTPVictorias)
-                            .addComponent(jLabelESTPAnotados)
-                            .addComponent(jLabelESTPEncajados)))
-                    .addGroup(EstadisticaUsuarioLayout.createSequentialGroup()
-                        .addGap(33, 33, 33)
-                        .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jButtonEstVolver)
-                            .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 437, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addComponent(jButtonEstVolver)
+                    .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addGroup(EstadisticaUsuarioLayout.createSequentialGroup()
+                            .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(EstadisticaUsuarioLayout.createSequentialGroup()
+                                    .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jLabel19)
+                                        .addComponent(jLabel21))
+                                    .addGap(19, 19, 19)
+                                    .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addComponent(jLabelESTPGanadas, javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jLabelESTPJugadas)))
+                                .addGroup(EstadisticaUsuarioLayout.createSequentialGroup()
+                                    .addComponent(jLabel20)
+                                    .addGap(18, 18, 18)
+                                    .addComponent(jLabelESTPPerdidas)))
+                            .addGap(45, 45, 45)
+                            .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jLabel27)
+                                .addComponent(jLabel25)
+                                .addComponent(jLabel26))
+                            .addGap(18, 18, 18)
+                            .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(EstadisticaUsuarioLayout.createSequentialGroup()
+                                    .addComponent(jLabelESTPAnotados)
+                                    .addGap(0, 0, Short.MAX_VALUE))
+                                .addGroup(EstadisticaUsuarioLayout.createSequentialGroup()
+                                    .addComponent(jLabelESTPEncajados)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jButtonVerPartida))
+                                .addGroup(EstadisticaUsuarioLayout.createSequentialGroup()
+                                    .addComponent(jLabelESTPVictorias)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jComboBoxPartidas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 437, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(30, Short.MAX_VALUE))
         );
         EstadisticaUsuarioLayout.setVerticalGroup(
             EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, EstadisticaUsuarioLayout.createSequentialGroup()
-                .addContainerGap(24, Short.MAX_VALUE)
+                .addContainerGap(12, Short.MAX_VALUE)
                 .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel21)
                     .addComponent(jLabel25)
                     .addComponent(jLabelESTPVictorias)
-                    .addComponent(jLabelESTPJugadas))
+                    .addComponent(jLabelESTPJugadas)
+                    .addComponent(jComboBoxPartidas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel26)
@@ -1056,7 +1237,8 @@ public class Pantalla extends javax.swing.JFrame {
                         .addComponent(jLabelESTPPerdidas))
                     .addGroup(EstadisticaUsuarioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel27)
-                        .addComponent(jLabelESTPEncajados)))
+                        .addComponent(jLabelESTPEncajados)
+                        .addComponent(jButtonVerPartida)))
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 331, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
@@ -1078,7 +1260,7 @@ public class Pantalla extends javax.swing.JFrame {
     private void jButtonLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLoginActionPerformed
         // TODO add your handling code here:
         String nombre = jTextFieldLoginUsuario.getText().trim();
-        String clave = new String(jPasswordFieldPasswordUsuario.getPassword());
+        String clave = String.valueOf(jPasswordFieldPasswordUsuario.getPassword());
         System.out.println(nombre+" "+clave);
         
         if(nombre.isEmpty() || clave.isEmpty() || "".equals(nombre) || "".equals(clave)){
@@ -1086,14 +1268,6 @@ public class Pantalla extends javax.swing.JFrame {
         } else {
             Usuario usuario = new Usuario(nombre, clave);
             ulog1=identificaUsuario(usuario);
-            /*try {
-                ulog1=almacen.identificar(usuario);
-                System.out.println(ulog1.toString());
-            } catch (WrongPasswordException ex) {
-                showMessage("Clave incorrecta");
-            } catch (UsuarioNoExisteException ex) {
-                showMessage("Usuario no existe");
-            } finally {*/
             nombre="";
             clave="";
             jTextFieldLoginUsuario.setText("");
@@ -1102,21 +1276,6 @@ public class Pantalla extends javax.swing.JFrame {
             if(ulog1!=null){
                 showMessage("Bienvenido "+ulog1.getNombre());
                 mostrarMenu();
-                /*Login.setVisible(false);
-                Entrenamiento.setVisible(true);*/
-                /*int opcion = seleccionarModoDeJuego();
-                if(opcion==ENTRENAMIENTO){ // modo entrenamiento
-                    Login.setVisible(false);
-                    Entrenamiento.setVisible(true);
-                }
-                if(opcion==PARTIDA){ // modo partida
-                    Login.setVisible(false);
-                    Partida.setVisible(true);
-                    showLoginDialog();
-                }
-                if(opcion==SALIR){
-                    System.exit(0);
-                }*/
             }
         }
     }//GEN-LAST:event_jButtonLoginActionPerformed
@@ -1134,9 +1293,11 @@ public class Pantalla extends javax.swing.JFrame {
         if(nombre.isEmpty() || clave.isEmpty() || "".equals(nombre) || "".equals(clave)){
             showMessage("Debes rellenar todos los campos");
         } else {
-            Usuario usuario = new Usuario(nombre, clave);
+                Usuario usuario = new Usuario(nombre, clave,jCheckBoxAdmin.isSelected());
+            
             try {
                 usuario=almacen.registrar(usuario);
+                clasificacion.addUsuario(usuario);
             } catch (UsuarioYaExisteException ex) {
                 usuario=null;
                 showMessage("El usuario "+nombre+" ya existe");
@@ -1151,7 +1312,7 @@ public class Pantalla extends javax.swing.JFrame {
                 showMessage("Usuario "+usuario.getNombre()+" registrado");
             } else {
                 showMessage("Algo ha ido mal, usuario no registrado");
-                //System.exit(1);
+                System.exit(0);
             }
         }
     }//GEN-LAST:event_jButtonOKNUsuarioActionPerformed
@@ -1182,7 +1343,6 @@ public class Pantalla extends javax.swing.JFrame {
                 } else {
                     if(intentos==0){
                         jLabelEIntRestantes.setText("infinito");
-                        modoInfinito=true;
                     } else {
                         jLabelEIntRestantes.setText(Integer.toString(intentos));
                     }
@@ -1212,18 +1372,18 @@ public class Pantalla extends javax.swing.JFrame {
         }
         //Combinacion combinacion = new Combinacion(combinacionEntrenamiento);
         rondaEntrenamiento.jugar(combinacionEntrenamiento);
-        str.append(rondaEntrenamiento.getIntentosGastdos()).append(".-").append(rondaEntrenamiento.getIntento().toString());
+        str.append(rondaEntrenamiento.getIntentosGastados()).append(".-").append(rondaEntrenamiento.getIntento().toString());
         str.append(" ").append(rondaEntrenamiento.getAciertos()).append(" aciertos con ").append(rondaEntrenamiento.getColocados()).append(" colocados");
         if(rondaEntrenamiento.esGanadora()){
             str.append("\n---- !!! GANADOR !!! ----");
             entrenamientoStop=true;
         }
-        if(rondaEntrenamiento.getIntentosGastdos()==intentos && !entrenamientoStop){
+        if(rondaEntrenamiento.getIntentosGastados()==intentos && !entrenamientoStop){
             str.append("\nNo quedan mas intentos\nLa clave era: ").append(rondaEntrenamiento.getClave().toString());
             entrenamientoStop=true;
         }
         jTextAreaEntrenamientoLog.append(str.toString()+"\n");
-        jLabelEIntRealizados.setText(Integer.toString(rondaEntrenamiento.getIntentosGastdos()));
+        jLabelEIntRealizados.setText(Integer.toString(rondaEntrenamiento.getIntentosGastados()));
         jButtonEJugar.setEnabled(false);
         if(entrenamientoStop){
             entrenamientoFinOpcion();
@@ -1265,103 +1425,80 @@ public class Pantalla extends javax.swing.JFrame {
         mostrarMenu();
     }//GEN-LAST:event_jButtonETerminarActionPerformed
 
-    private void jButtonPSetClaveSecretaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPSetClaveSecretaActionPerformed
+    private void jButtonPAddClaveSecretaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPAddClaveSecretaActionPerformed
         // TODO add your handling code here:
-        jTextAreaPartidaInfo.setText("");
         
-        int op = -1;
-        do{
-            op = JOptionPane.showConfirmDialog(this, jPanelSetClaveSecreta, "Clave secreta", JOptionPane.OK_CANCEL_OPTION);
-            if(op==JOptionPane.OK_OPTION){
-                String cl = jTextFieldPClaveSecreta.getText().trim();
-                if(cl.isEmpty() || "".equals(cl)){
-                    showMessage("No se permiten campos vacios");
-                    op=-1;
-                } else {
-                    combinacionSecreta = new Combinacion(cl);
-                    if(combinacionSecreta.checkCombinacion()){
-                        rondaPartida = new Ronda(combinacionSecreta);
-                        partida.addRonda(rondaPartida);
-                        jLabelPIntGastados.setText(Integer.toString(partida.getIntentosGastados()));
-                        jLabelPTotalIntentos.setText(Integer.toString(partida.getIntentos()));
-                        jButtonPSetClaveSecreta.setEnabled(false);
-                        jTextAreaPartidaInfo.append("Usuario "+ulog1.getNombre()+" ha añadido la clave secreta\n");
-                        jTextAreaPartidaInfo.append("Turno del usuario "+ulog2.getNombre()+"\n");
-                        jButtonPAddIntento.setEnabled(true);
-                    } else {
-                        cl="";
-                        showMessageCombinacionNoValida();
-                        op=-1;
-                    }
-                }
-            } else {
-                showMessage("Combinacion secreta no definida");
-            }
-            jTextFieldPClaveSecreta.setText("");
-        } while (op==-1);
-        
-    }//GEN-LAST:event_jButtonPSetClaveSecretaActionPerformed
+        String secString = addClaveSecreta();
+        Combinacion combinacion = new Combinacion(secString);
+        if(combinacion.checkCombinacion()){
+            combinacionSecreta = combinacion;
+            
+            // se crea y se añade nueva ronda a la partida
+            rondaPartida = new Ronda(combinacionSecreta); 
+            partida.addRonda(rondaPartida); //se añade ronda a la partida
+            jLabelPTotalIntentos.setText(Integer.toString(partida.getIntentos()));
+            jLabelPIntGastados.setText(Integer.toString(partida.getIntentosGastados()));
+            jLabelPNumeroRonda.setText(Integer.toHexString(partida.getRondas_gastadas()));
+            jTextAreaPartidaInfo.setText("Combinacion secreta añadida, inicio de la ronda\n");
+            jButtonPAddClaveSecreta.setEnabled(false);
+            jButtonPAddIntento.setEnabled(true);
+        } else {
+            showMessageCombinacionNoValida();
+        }
+    }//GEN-LAST:event_jButtonPAddClaveSecretaActionPerformed
 
     private void jButtonPAddIntentoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPAddIntentoActionPerformed
         // TODO add your handling code here:
-        String s = jTextFieldPIntento.getText();
-        if(s.isEmpty()){
-            showMessage("El campo no puede estar vacio");
+        String intString = addIntento();
+        Combinacion combinacion = new Combinacion(intString);
+        if(combinacion.checkCombinacion()){
+            combinacionIntento=combinacion;
+            jButtonPAddIntento.setEnabled(false);
+            jTextAreaPartidaInfo.append("Combinacion añadida: "+combinacionIntento.toString()+"\n");
+            jButtonPJugar.setEnabled(true);
         } else {
-            combinacionIntento = new Combinacion(s);
-            if(combinacionIntento.checkCombinacion()){
-                jTextAreaPartidaInfo.append("Has añadido la combinacion: "+combinacionIntento.toString()+"\n");
-                jButtonPAddIntento.setEnabled(false);
-                jButtonPJugar.setEnabled(true);
-            } else {
-                showMessageCombinacionNoValida();
-            }
-            
-            
+            showMessageCombinacionNoValida();
         }
-        jTextFieldPIntento.setText("");
     }//GEN-LAST:event_jButtonPAddIntentoActionPerformed
 
     private void jButtonPJugarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPJugarActionPerformed
         // TODO add your handling code here:
-        boolean fin=false;
-        partida.jugarRonda(combinacionIntento);
-        int ac = partida.getRonda().getAciertos();
-        int col = partida.getRonda().getColocados();
+        //jTextAreaPartidaInfo.setText("");
+        boolean finRonda = false;
         
-        //hay que actualizar algunos datos
-        jLabelPIntGastados.setText(Integer.toString(partida.getIntentosGastados()));
+        partida.jugarRonda(indiceRondaActual, combinacionIntento);
+        //obtengo ronda jugada y muestro los datos correspondientes
+        Ronda rondaActual = partida.getRonda(indiceRondaActual); //se obtiene ronda correspondiente
+        jLabelPIntGastados.setText(Integer.toString(rondaActual.getIntentosGastados()));
         
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(partida.getIntentosGastados()).append(".-").append(combinacionIntento.toString()).append(" ").append(ac).append(" aciertos con ").append(col).append(" colocados\n");
+        //uso este metodo para sacar un historico de intentos anteriores
+        jTextAreaPartidaInfo.append(partida.getHistoricoIntentos(indiceRondaActual)); 
+
+        if(rondaActual.getIntentosRestantes()==0 || rondaActual.esGanadora()){
+            if(rondaActual.esGanadora()){
+                jTextAreaPartidaInfo.append("\n----!!!GANADOR!!!----\n");
+            }
+            jTextAreaPartidaInfo.append("Fin de ronda\n");
+            finRonda=true;
+            indiceRondaActual++;
+            cambioDeTurno(indiceRondaActual);
+        } 
+        //jTextAreaPartidaInfo.append(jTextAreaPartidaInfo.toString());
         
-        if(partida.getRonda().esGanadora()){
-            stringBuilder.append("\n---- !!! GANADOR !!! ----\n");
-        }
-        
-        if(partida.finRonda()){
-            stringBuilder.append("Fin de ronda\n");
-            jLabelPNumeroRonda.setText(Integer.toString(partida.getRondas_gastadas()));
-            jButtonPSetClaveSecreta.setEnabled(true);
+        if(finRonda){
+            jButtonPAddClaveSecreta.setEnabled(true);
             jButtonPAddIntento.setEnabled(false);
-            if(partida.finRonda() && partida.getRondasRestantes()==0){
-                stringBuilder.append("Fin de partida\n");
-                jButtonPSetClaveSecreta.setEnabled(false);
-                fin=true;
-            } else {
-                stringBuilder.append("Turno de usuario ").append(ulog1.getNombre()).append(" para establecer nueva combinacion secreta\n");
+            if(partida.getRondasRestantes()==0){
+                partida.asignarEstadísticas();
+                clasificacion.actualizarUsuario(ulog1);
+                clasificacion.actualizarUsuario(ulog2);
+                showMessage("Fin de partida");
+                mostrarMenu();
             }
         } else {
-            jButtonPSetClaveSecreta.setEnabled(false);
             jButtonPAddIntento.setEnabled(true);
         }
-        
-        jTextAreaPartidaInfo.append(stringBuilder.toString());
         jButtonPJugar.setEnabled(false);
-        if(fin){
-            partida.guardarPartida();
-            mostrarMenu();
-        }
     }//GEN-LAST:event_jButtonPJugarActionPerformed
 
     private void jButtonTerminarPartidaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonTerminarPartidaActionPerformed
@@ -1373,6 +1510,54 @@ public class Pantalla extends javax.swing.JFrame {
         // TODO add your handling code here:
         mostrarMenu();
     }//GEN-LAST:event_jButtonEstVolverActionPerformed
+
+    private void jButtonFporPVictoriasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonFporPVictoriasActionPerformed
+        // TODO add your handling code here:
+        jTextAreaClasificacion.setText("");
+        jTextAreaClasificacion.setText(clasificacion.mostrarClasificacion());
+    }//GEN-LAST:event_jButtonFporPVictoriasActionPerformed
+
+    private void jButtonFporPGanadasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonFporPGanadasActionPerformed
+        // TODO add your handling code here:
+        jTextAreaClasificacion.setText("");
+        jTextAreaClasificacion.setText(clasificacion.mostrarClasificacionPorPartidasGanadas());
+    }//GEN-LAST:event_jButtonFporPGanadasActionPerformed
+
+    private void jButtonGuardarClasificacionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonGuardarClasificacionActionPerformed
+        // TODO add your handling code here:
+        jFileChooser1.setDialogTitle("Guardar archivo");
+        jFileChooser1.setCurrentDirectory(new File(System.getProperty("user.dir")));
+        jFileChooser1.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("TEXT FILES", "txt", "text");
+        jFileChooser1.setFileFilter(filter);
+        int result = jFileChooser1.showSaveDialog(rootPane);
+        if(result==JFileChooser.APPROVE_OPTION){
+            //escribir datos
+            File file = jFileChooser1.getSelectedFile();
+            try {
+                clasificacion.volcar_a_txt(file);
+                showMessage("Datos guardados en archivo: "+file.getName());
+            } catch (IOException ex) {
+                Logger.getLogger(Pantalla.class.getName()).log(Level.SEVERE, null, ex);
+                showMessage("No ha sido podible escribir datos en archivo: "+file.getName());
+            }
+        }
+        
+    }//GEN-LAST:event_jButtonGuardarClasificacionActionPerformed
+
+    private void jButtonVerPartidaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonVerPartidaActionPerformed
+        // TODO add your handling code here:
+        if(partidaSelected){
+            Partida p = ulog1.getPartidasJugadas().get(jComboBoxPartidas.getSelectedIndex());
+            showMessage(p.toString());
+        }
+    }//GEN-LAST:event_jButtonVerPartidaActionPerformed
+
+    private void jComboBoxPartidasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxPartidasActionPerformed
+        // TODO add your handling code here
+        partidaSelected=true;
+        jButtonVerPartida.setEnabled(true);
+    }//GEN-LAST:event_jComboBoxPartidasActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1416,22 +1601,27 @@ public class Pantalla extends javax.swing.JFrame {
     private javax.swing.JPanel Login;
     private javax.swing.JPanel NuevoUsuario;
     private javax.swing.JPanel Partida;
-    private javax.swing.JButton jButton5;
     private javax.swing.JButton jButtonAddCombinacion;
     private javax.swing.JButton jButtonCargarDatos;
     private javax.swing.JButton jButtonEJugar;
     private javax.swing.JButton jButtonETerminar;
     private javax.swing.JButton jButtonEVerClaveSercreta;
     private javax.swing.JButton jButtonEstVolver;
+    private javax.swing.JButton jButtonFporPGanadas;
+    private javax.swing.JButton jButtonFporPVictorias;
+    private javax.swing.JButton jButtonGuardarClasificacion;
     private javax.swing.JButton jButtonLogin;
     private javax.swing.JButton jButtonNuevoUsuario;
     private javax.swing.JButton jButtonOKNUsuario;
+    private javax.swing.JButton jButtonPAddClaveSecreta;
     private javax.swing.JButton jButtonPAddIntento;
     private javax.swing.JButton jButtonPJugar;
-    private javax.swing.JButton jButtonPSetClaveSecreta;
     private javax.swing.JButton jButtonSetIntentos;
     private javax.swing.JButton jButtonTerminarPartida;
+    private javax.swing.JButton jButtonVerPartida;
     private javax.swing.JButton jButtonVolverNUsuario;
+    private javax.swing.JCheckBox jCheckBoxAdmin;
+    private javax.swing.JComboBox<String> jComboBoxPartidas;
     private javax.swing.JDialog jDialog1;
     private javax.swing.JFileChooser jFileChooser1;
     private javax.swing.JLabel jLabel1;
@@ -1448,6 +1638,7 @@ public class Pantalla extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
+    private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel25;
     private javax.swing.JLabel jLabel26;
     private javax.swing.JLabel jLabel27;
@@ -1472,13 +1663,18 @@ public class Pantalla extends javax.swing.JFrame {
     private javax.swing.JLabel jLabelPTotalIntentos;
     private javax.swing.JLabel jLabelPUsuario1;
     private javax.swing.JLabel jLabelPUsuario2;
+    private javax.swing.JPanel jPanelClasificacion;
     private javax.swing.JPanel jPanelLoginDialog;
     private javax.swing.JPanel jPanelSetClaveSecreta;
+    private javax.swing.JPanel jPanelSetIntento;
     private javax.swing.JPasswordField jPasswordFieldPasswordUsuario;
     private javax.swing.JPasswordField jPasswordLoginDialog;
+    private javax.swing.JPasswordField jPasswordPClaveSecreta;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JTextArea jTextAreaClasificacion;
     private javax.swing.JTextArea jTextAreaEntrenamientoLog;
     private javax.swing.JTextArea jTextAreaEstUsuario;
     private javax.swing.JTextArea jTextAreaPartidaInfo;
@@ -1487,7 +1683,6 @@ public class Pantalla extends javax.swing.JFrame {
     private javax.swing.JTextField jTextFieldLoginDialog;
     private javax.swing.JTextField jTextFieldLoginUsuario;
     private javax.swing.JTextField jTextFieldNombreNUsuario;
-    private javax.swing.JTextField jTextFieldPClaveSecreta;
     private javax.swing.JTextField jTextFieldPIntento;
     private javax.swing.JTextField jTextFieldPasswordNUsuario;
     // End of variables declaration//GEN-END:variables
