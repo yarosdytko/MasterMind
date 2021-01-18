@@ -185,7 +185,7 @@ public class Ronda implements Serializable {
         for(int i = 0; i < intentos.size(); i++){
             s.append("Intento"+(i+1)+".- "+intentos.get(i).toString()+": "+ aciertos.get(i)+ " acierto(-s) con "+ colocados.get(i)+" colocado(-s)\n");
         }
-        s.append("----------\nTotal de puntos: "+puntos);
+        s.append("----------\nTotal de puntos: "+puntos+"\n");
         return (s.toString());
     }
 

@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.JTextPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
@@ -98,7 +99,6 @@ public class Pantalla extends javax.swing.JFrame {
         jLabelPUsuario2.setText("");
         jLabelPUsuario1.setText(u1Ronda.getNombre());
         jLabelPUsuario2.setText(u2Ronda.getNombre());
-        //jTextAreaPartidaInfo.append(partida.getHistoricoIntentos(indiceDeRonda-i));
         showMessage("Cambio de turno "+u1Ronda.getNombre()+" VS "+u2Ronda.getNombre());
         
     }
@@ -111,7 +111,7 @@ public class Pantalla extends javax.swing.JFrame {
     private int seleccionarModoDeJuego(){
         int i= -1;
         
-        Object[] options={"Entrenamiento","Partida","Estadistica","Clasificaion","Guardar","Salir"};
+        Object[] options={"Entrenamiento","Partida","Estadistica","Clasificacion","Guardar","Salir"};
         
         do{
             i = JOptionPane.showOptionDialog(this, "Selecciona modo de juego", 
@@ -444,6 +444,8 @@ public class Pantalla extends javax.swing.JFrame {
         jButtonFporPVictorias = new javax.swing.JButton();
         jButtonFporPGanadas = new javax.swing.JButton();
         jButtonGuardarClasificacion = new javax.swing.JButton();
+        jScrollPaneRondas = new javax.swing.JScrollPane();
+        jTextPaneRondaInfo = new javax.swing.JTextPane();
         Login = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -670,6 +672,12 @@ public class Pantalla extends javax.swing.JFrame {
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(39, Short.MAX_VALUE))
         );
+
+        jScrollPaneRondas.setPreferredSize(new java.awt.Dimension(300, 400));
+
+        jTextPaneRondaInfo.setEditable(false);
+        jTextPaneRondaInfo.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jScrollPaneRondas.setViewportView(jTextPaneRondaInfo);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Master Mind");
@@ -1548,8 +1556,15 @@ public class Pantalla extends javax.swing.JFrame {
     private void jButtonVerPartidaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonVerPartidaActionPerformed
         // TODO add your handling code here:
         if(partidaSelected){
-            Partida p = ulog1.getPartidasJugadas().get(jComboBoxPartidas.getSelectedIndex());
-            showMessage(p.toString());
+            
+            ArrayList<Ronda> r = ulog1.getPartidasJugadas().get(jComboBoxPartidas.getSelectedIndex()).getRondas();
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < r.size(); i++) {
+                sb.append(r.get(i).toString());
+            }
+            
+            jTextPaneRondaInfo.setText(sb.toString());
+            JOptionPane.showConfirmDialog(rootPane, jScrollPaneRondas,"Informacion detallada",JOptionPane.OK_OPTION);
         }
     }//GEN-LAST:event_jButtonVerPartidaActionPerformed
 
@@ -1674,6 +1689,7 @@ public class Pantalla extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPaneRondas;
     private javax.swing.JTextArea jTextAreaClasificacion;
     private javax.swing.JTextArea jTextAreaEntrenamientoLog;
     private javax.swing.JTextArea jTextAreaEstUsuario;
@@ -1685,5 +1701,6 @@ public class Pantalla extends javax.swing.JFrame {
     private javax.swing.JTextField jTextFieldNombreNUsuario;
     private javax.swing.JTextField jTextFieldPIntento;
     private javax.swing.JTextField jTextFieldPasswordNUsuario;
+    private javax.swing.JTextPane jTextPaneRondaInfo;
     // End of variables declaration//GEN-END:variables
 }

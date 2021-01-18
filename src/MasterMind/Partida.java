@@ -172,6 +172,9 @@ public class Partida implements Serializable {
         usuario2.agregarPartida(this);
     }
     
+    public ArrayList<Ronda> getRondas(){
+        return this.rondas;
+    }
 
     public int getNumero_de_rondas() {
         return numero_de_rondas;
